@@ -19,7 +19,7 @@
 
 
 # 요구사항 정의
-- 본 프로젝트에서 요구되는 기능적 요구사항을 정리해 보았습니다.
+- 본 프로젝트에서 요구되는 기능적 요구사항을 정리하고 이를 [유스케이스 다이어그램](document/use-case-hoonsletter.drawio.svg)으로 디자인 해보았습니다.
 
 ## 비회원 요구사항 
 
@@ -33,13 +33,13 @@
 - 다른 사용자가 제작한 편지를 볼 수 있습니다.
 
 [4. **편지 조회**](#4-전체-편지-조회)
-   - 다른 사용자가 제작한 편지를 조회할 수 있습니다.
- 
+- 다른 사용자가 제작한 편지를 조회할 수 있습니다.
+
    [4.1 **편지 검색**](#5-편지-검색)
-    - 사용자는 제작한 편지들을 사용자의 요구에 맞게 검색을 할 수 있습니다.
+   - 사용자는 제작한 편지들을 사용자의 요구에 맞게 검색을 할 수 있습니다.
    
    [4.2 **편지 정렬**](#4-전체-편지-조회)
-    - 사용자는 제작한 편지들을 사용자의 요구에 맞게 정렬을 할 수 있습니다.
+   - 사용자는 제작한 편지들을 사용자의 요구에 맞게 정렬을 할 수 있습니다.
 
 ## 회원 요구사항
 
@@ -49,7 +49,7 @@
 [2. **편지 제작**](#7-편지-생성)
 - 사용자는 원하는 템플릿을 선택하여 편지를 제작할 수 있습니다.
 
-[3. **편지 수정**](#8-편지-수정)
+#### [3. **편지 수정**](#8-편지-수정)
  - 사용자는 제작한 편지를 수정할 수 있습니다.
  - 제작한 편지는 제작 후 **3일** 까지만 수정이 가능하고 그 이후는 불가능 합니다.
 
@@ -124,3 +124,68 @@
 - 입력 데이터: X
 - 응답 데이터: X
 
+# 데이터베이스 설계
+- 주어진 요구사항과 api 스펙을 토대로 [ERD](document/erd_hoonsletter.drawio.svg)를 설계해 보았습니다.
+
+## Table
+- ### name
+  - [**user**](#user)
+  - [**letter**](#letter)
+  - [**letter_message**](#letter_message)
+  - [**letter_picture**](#letter_picture)
+- ### Attributes
+  - ### user
+    - **username(PK)** `VARCHAR(255) NOT NULL updateable = false`
+      - 유저 아이디
+      - 변경할 수 없는 고유의 값입니다.
+      - `user_id`를 사용하지 않고 username을 PK로 한 이유: 
+        - **만약 user_id를 uid로써 정의하고 username을 변경 가능하게 할 경우, 유저의 username이 변경되면 다른 tuple의 데이터도 바뀐 username에 따라 update(SET)과정을 거치게 되기 때문에 자원 비효율적이라 판단했습니다. <br /> 그래서 username을 변경할 수 없게 하고 PK로 설계를 했습니다.**
+    - **password** `VARCHAR(255) NOT NULL`
+      - 유저 비밀번호
+      - Hash 값이 저장됩니다.
+    - **nickname** `VARCHAR(50) NOT NULL`
+      - 유저 닉네임
+    - **profile_url** `VARCHAR(255) NOT NULL`
+      - 유저 프로필 사진
+      - 사진의 주소값이 저정됩니다.
+  - ### letter
+    - **letter_id(PK)** `BIG_INT NOT NULL AUTO_INCREMENT`
+      - 편지의 uid
+    - **type** `VARCHAR(20) NOT NULL updatable = false`
+      - 편지의 타입
+      - enum string 값이 저장됩니다.
+      - 편지는 여러 타입이 있고, 그 타입에 따라 포함하는 메시지, 사진의 개수가 다릅니다. 이를 구별 하기 위한 필드입니다.
+    - **thumbnail_url** `VARCHAR(255) NOT NULL`
+      - 편지 썸네일 사진
+      - 사진의 주소값이 저장됩니다.
+    - **created_at** `TIMESTAMP NOT NULL updateable = false`
+      - 생성 일시
+      - 생성 일시를 기준으로 정렬 기능을 구현 하기 위한 필드입니다.
+    - **updateable** `BOOLEAN DEFAULT 'true'`
+      - 수정 가능 여부
+      - [요구사항](#3-편지-수정)에 따라 수정 가능 여부를 판단하기 위해 필드를 따로 생성합니다.
+    - **username(FK)** `VARCHAR(50) NOT NULL ON DELETE CASCADE`
+      - user를 참조하는 외래키
+      - 편지는 반드시 소유자가 있어야 하므로 NULL값을 가질 수 없고 부모 엔티티가 삭제되면 자신도 삭제 됩니다.
+  - ### letter_picture
+    - **letter_picture_id(PK)** `BIG_INT NOT NULL`
+      - 편지의 사진 엔티티 고유 id
+    - **order** `INT(11) NOT NULL`
+      - 편지에 포함된 사진의 순서.
+      - 편지는 여러 장의 사진을 포함하고 정해진 순서대로 표현 되어야 합니다. 
+      - 사진을 정해진 순서대로 표현하기 위한 필드 입니다.
+    - **url** `VARCHAR(255) NOT NULL`
+      - 사진의 url
+    - **letter_id(FK)** `BIGINT NOT NULL ON DELETE CASCADE`
+      - letter를 참조하는 외래키
+  - ### letter_message
+    - **letter_message_id(PK)** `BIG_INT NOT NULL`
+      - 편지의 사진 엔티티 고유 id
+    - **order** `INT(11) NOT NULL`
+      - 편지에 포함된 메시지의 순서.
+      - 편지는 여러 메시지를 포함하고 정해진 순서대로 표현 되어야 합니다.
+      - 메시지을 정해진 순서대로 표현하기 위한 필드 입니다.
+    - **content** `VARCHAR(255) NOT NULL`
+      - 메시지 내용
+    - **letter_id(FK)** `BIGINT NOT NULL ON DELETE CASCADE`
+      - letter를 참조하는 외래키

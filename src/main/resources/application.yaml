@@ -1,0 +1,33 @@
+
+spring:
+  datasource:
+    url: ${LOCAL_DB_URL}
+    username: ${LOCAL_DB_USERNAME}
+    password: ${LOCAL_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        default_batch_fetch_size: 100
+    show-sql: true
+    defer-datasource-initialization: true
+    open-in-view: false
+  sql:
+    init:
+      mode: always
+
+debug: false
+management.endpoints.web.exposure.include: "*"
+
+logging:
+  level:
+    com.example.hoonsletter_back_springboot: debug
+    org.springframework.web.servlet: debug
+    org.hibernate.type.descriptor.BasicBinder: trace

@@ -66,17 +66,10 @@ public class Letter {
   private User user;
 
 
-  // Letter -> LetterMessage 단방향 매핑
   @ToString.Exclude
   @JoinColumn(name = "letter_id")
   @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-  private List<LetterMessage> letterMessages;
-
-  // Letter -> LetterPicture 단방향 매핑
-  @ToString.Exclude
-  @JoinColumn(name = "letter_id")
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-  private List<LetterPicture> letterPictures;
+  private List<LetterScene> letterScenes;
 
   protected Letter(){} // no-args constructor
 

@@ -1,5 +1,6 @@
 package com.example.hoonsletter_back_springboot.domain;
 
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,12 +11,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-
 @Getter
 @Setter
 @Entity
 @ToString
-public class LetterMessage {
+public class ScenePicture {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
@@ -24,30 +24,30 @@ public class LetterMessage {
   private int order;
 
   @Column(nullable = false)
-  private String content;
+  private String url;
 
-  protected LetterMessage() {} // no-args constructor
+  protected ScenePicture(){}
 
-  private LetterMessage(int order, String content){
+  private ScenePicture(int order, String url){
     this.order = order;
-    this.content = content;
+    this.url = url;
   }
 
-  public static LetterMessage of(int order, String content){
-    return new LetterMessage(order, content);
+  public static ScenePicture of(int order, String url){
+    return new ScenePicture(order, url);
   }
 
   @Override
   public boolean equals(Object o){
     if(this == o) return true;
 
-    if(!(o instanceof LetterMessage that)) return false;
+    if(!(o instanceof ScenePicture that)) return false;
 
     return getId() != null && getId().equals(that.getId());
   }
 
   @Override
-  public int hashCode() {
+  public int hashCode(){
     return Objects.hash(getId());
   }
 }

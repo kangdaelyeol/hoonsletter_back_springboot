@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.List;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -40,4 +41,30 @@ public class User {
   @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Letter> letters;
 
+  protected User(){}
+
+  private User(String username, String password, String nickname, String profileUrl) {
+    this.username = username;
+    this.password = password;
+    this.nickname = nickname;
+    this.profileUrl = profileUrl;
+  }
+
+  public static User of(String username, String password, String nickname, String profileUrl){
+    return new User(username, password, nickname, profileUrl);
+  }
+
+  @Override
+  public boolean equals(Object o){
+    if(this == o) return true;
+
+    if(!(o instanceof User that)) return false;
+
+    return getUsername() != null && getUsername().equals(that.getUsername());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getUsername());
+  }
 }

@@ -19,6 +19,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -76,4 +77,31 @@ public class Letter {
   @JoinColumn(name = "letter_id")
   @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<LetterPicture> letterPictures;
+
+  protected Letter(){} // no-args constructor
+
+  private Letter(String title, LetterType letterType, boolean updatable, String thumbnailUrl){
+    this.title = title;
+    this.type = letterType;
+    this.thumbnailUrl = thumbnailUrl;
+    this.updatable = updatable;
+  }
+
+  public static Letter of(String title, LetterType letterType, String thumbnailUrl){
+    return new Letter(title, letterType, true, thumbnailUrl);
+  }
+
+  @Override
+  public boolean equals(Object o){
+    if(this == o) return true;
+
+    if(!(o instanceof Letter that)) return false;
+
+    return getId() != null && getId().equals(that.getId());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.getId());
+  }
 }

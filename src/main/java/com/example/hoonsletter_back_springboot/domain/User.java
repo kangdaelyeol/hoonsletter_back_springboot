@@ -3,10 +3,8 @@ package com.example.hoonsletter_back_springboot.domain;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.List;
@@ -34,11 +32,11 @@ public class User {
   @Column(length = 50, nullable = false)
   private String nickname;
 
-  @Column
+  @Column(nullable = false)
   private String profileUrl;
 
   @ToString.Exclude
-  @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Letter> letters;
 
   protected User(){}

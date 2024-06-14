@@ -62,26 +62,26 @@ public class Letter {
 
   @ToString.Exclude
   @JoinColumn(name = "user_id")
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   private User user;
 
 
   @ToString.Exclude
-  @JoinColumn(name = "letter_id")
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+  @OneToMany(mappedBy = "letter", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<LetterScene> letterScenes;
 
   protected Letter(){} // no-args constructor
 
-  private Letter(String title, LetterType letterType, boolean updatable, String thumbnailUrl){
+  private Letter(String title, LetterType letterType, boolean updatable, String thumbnailUrl, User user){
     this.title = title;
     this.type = letterType;
     this.thumbnailUrl = thumbnailUrl;
     this.updatable = updatable;
+    this.user = user;
   }
 
-  public static Letter of(String title, LetterType letterType, String thumbnailUrl){
-    return new Letter(title, letterType, true, thumbnailUrl);
+  public static Letter of(String title, LetterType letterType, String thumbnailUrl, User user){
+    return new Letter(title, letterType, true, thumbnailUrl, user);
   }
 
   @Override

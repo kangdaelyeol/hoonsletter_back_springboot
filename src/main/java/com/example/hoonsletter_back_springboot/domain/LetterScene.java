@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.util.List;
 import java.util.Objects;
@@ -27,26 +28,28 @@ public class LetterScene {
   @Column(nullable = false)
   private int order;
 
-  // letter_scene -> letter_message 단방향 매핑
   @ToString.Exclude
-  @JoinColumn(name = "scene_id")
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "letter_id")
+  private Letter letter;
+
+  @ToString.Exclude
+  @OneToMany(mappedBy = "letterScene", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<SceneMessage> sceneMessages;
 
-  // letter_scene -> letter_picture 단방향 매핑
   @ToString.Exclude
-  @JoinColumn(name = "scene_id")
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+  @OneToMany(mappedBy = "letterScene", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ScenePicture> scenePictures;
 
   protected LetterScene(){} // no-args constructor
 
-  private LetterScene(int order){
+  private LetterScene(int order, Letter letter){
     this.order = order;
+    this.letter = letter;
   }
 
-  public static LetterScene of(int order){
-    return new LetterScene(order);
+  public static LetterScene of(int order, Letter letter){
+    return new LetterScene(order, letter);
   }
 
   @Override

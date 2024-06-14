@@ -48,15 +48,16 @@ public class SceneMessage {
 
   protected SceneMessage() {} // no-args constructor
 
-  private SceneMessage(int order, String content, MessageSizeType sizeType, MessageColorType colorType){
+  private SceneMessage(int order, String content, MessageSizeType sizeType, MessageColorType colorType, LetterScene letterScene){
     this.order = order;
     this.content = content;
     this.sizeType = sizeType;
     this.colorType = colorType;
+    this.letterScene = letterScene;
   }
 
-  public static SceneMessage of(int order, String content, MessageSizeType sizeType, MessageColorType colorType){
-    return new SceneMessage(order, content, sizeType, colorType);
+  public static SceneMessage of(int order, String content, MessageSizeType sizeType, MessageColorType colorType, LetterScene letterScene){
+    return new SceneMessage(order, content, sizeType, colorType, letterScene);
   }
 
   @Override

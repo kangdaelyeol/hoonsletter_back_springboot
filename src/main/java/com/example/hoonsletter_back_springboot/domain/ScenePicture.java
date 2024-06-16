@@ -24,7 +24,7 @@ public class ScenePicture {
   private Long id;
 
   @Column(nullable = false)
-  private int order;
+  private int partOrder;
 
   @Column(nullable = false)
   private String url;
@@ -36,14 +36,14 @@ public class ScenePicture {
 
   protected ScenePicture(){}
 
-  private ScenePicture(int order, String url, LetterScene letterScene){
-    this.order = order;
+  private ScenePicture(int partOrder, String url, LetterScene letterScene){
+    this.partOrder = partOrder;
     this.url = url;
     this.letterScene = letterScene;
   }
 
-  public static ScenePicture of(int order, String url, LetterScene letterScene){
-    return new ScenePicture(order, url, letterScene);
+  public static ScenePicture of(int partOrder, String url, LetterScene letterScene){
+    return new ScenePicture(partOrder, url, letterScene);
   }
 
   @Override

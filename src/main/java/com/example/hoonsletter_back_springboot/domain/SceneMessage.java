@@ -28,7 +28,7 @@ public class SceneMessage {
   private Long id;
 
   @Column(nullable = false)
-  private int order;
+  private int partOrder;
 
   @Column(nullable = false)
   private String content;
@@ -48,16 +48,16 @@ public class SceneMessage {
 
   protected SceneMessage() {} // no-args constructor
 
-  private SceneMessage(int order, String content, MessageSizeType sizeType, MessageColorType colorType, LetterScene letterScene){
-    this.order = order;
+  private SceneMessage(int partOrder, String content, MessageSizeType sizeType, MessageColorType colorType, LetterScene letterScene){
+    this.partOrder = partOrder;
     this.content = content;
     this.sizeType = sizeType;
     this.colorType = colorType;
     this.letterScene = letterScene;
   }
 
-  public static SceneMessage of(int order, String content, MessageSizeType sizeType, MessageColorType colorType, LetterScene letterScene){
-    return new SceneMessage(order, content, sizeType, colorType, letterScene);
+  public static SceneMessage of(int partOrder, String content, MessageSizeType sizeType, MessageColorType colorType, LetterScene letterScene){
+    return new SceneMessage(partOrder, content, sizeType, colorType, letterScene);
   }
 
   @Override

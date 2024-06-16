@@ -26,7 +26,7 @@ public class LetterScene {
   private Long id;
 
   @Column(nullable = false)
-  private int order;
+  private int partOrder;
 
   @ToString.Exclude
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -43,13 +43,13 @@ public class LetterScene {
 
   protected LetterScene(){} // no-args constructor
 
-  private LetterScene(int order, Letter letter){
-    this.order = order;
+  private LetterScene(int partOrder, Letter letter){
+    this.partOrder = partOrder;
     this.letter = letter;
   }
 
-  public static LetterScene of(int order, Letter letter){
-    return new LetterScene(order, letter);
+  public static LetterScene of(int partOrder, Letter letter){
+    return new LetterScene(partOrder, letter);
   }
 
   @Override

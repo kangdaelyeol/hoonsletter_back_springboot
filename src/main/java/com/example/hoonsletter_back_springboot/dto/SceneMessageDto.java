@@ -25,7 +25,7 @@ public record SceneMessageDto(
   public static SceneMessageDto from(SceneMessage entity){
     return SceneMessageDto.of(
         entity.getId(),
-        entity.getOrder(),
+        entity.getPartOrder(),
         entity.getContent(),
         entity.getSizeType(),
         entity.getColorType(),

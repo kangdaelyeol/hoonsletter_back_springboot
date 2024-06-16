@@ -171,7 +171,7 @@
   - ### letter_scene
     - **scene_id(PK)** `BIG_INT NOT NULL AUTO_INCREMENT`
       - 장면의 uid
-    - **order** `INT(11) NOT NULL`
+    - **part_order** `INT(11) NOT NULL`
       - 편지에 포함된 장면의 순서.
       - 편지는 여러 장의 장면을 포함하고 정해진 순서대로 표현 되어야 합니다.
       - 장면을 정해진 순서대로 표현하기 위한 필드 입니다.
@@ -181,7 +181,7 @@
   - ### scene_picture
     - **picture_id(PK)** `BIG_INT NOT NULL`
       - 편지의 사진 엔티티 고유 id
-    - **order** `INT(11) NOT NULL`
+    - **part_order** `INT(11) NOT NULL`
       - 장면에 포함된 사진의 순서.
       - 장면은 여러 장의 사진을 포함하고 정해진 순서대로 표현 되어야 합니다. 
       - 사진을 정해진 순서대로 표현하기 위한 필드 입니다.
@@ -192,7 +192,7 @@
   - ### scene_message
     - **message_id(PK)** `BIG_INT NOT NULL`
       - 편지의 사진 엔티티 고유 id
-    - **order** `INT(11) NOT NULL`
+    - **part_order** `INT(11) NOT NULL`
       - 장면에 포함된 메시지의 순서.
       - 장면은 여러 메시지를 포함하고 정해진 순서대로 표현 되어야 합니다.
       - 메시지을 정해진 순서대로 표현하기 위한 필드 입니다.

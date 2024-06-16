@@ -16,7 +16,7 @@ public record ScenePictureDto(
   public static ScenePictureDto from(ScenePicture entity){
     return ScenePictureDto.of(
         entity.getId(),
-        entity.getOrder(),
+        entity.getPartOrder(),
         entity.getUrl(),
         LetterSceneDto.from(entity.getLetterScene())
     );

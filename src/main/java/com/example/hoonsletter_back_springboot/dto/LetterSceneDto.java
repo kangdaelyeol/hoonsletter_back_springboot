@@ -27,7 +27,7 @@ public record LetterSceneDto(
   public static LetterSceneDto from(LetterScene entity) {
     return new LetterSceneDto(
         entity.getId(),
-        entity.getOrder(),
+        entity.getPartOrder(),
         LetterDto.from(entity.getLetter()),
         entity.getSceneMessages().stream()
             .map(SceneMessageDto::from)

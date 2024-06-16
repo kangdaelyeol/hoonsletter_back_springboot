@@ -1,7 +1,7 @@
 package com.example.hoonsletter_back_springboot.dto;
 
 import com.example.hoonsletter_back_springboot.domain.Letter;
-import com.example.hoonsletter_back_springboot.domain.User;
+import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.domain.constant.LetterType;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,18 +44,18 @@ public record LetterDto(
         entity.getThumbnailUrl(),
         entity.getCreatedAt(),
         entity.isUpdatable(),
-        UserDto.from(entity.getUser()),
+        UserDto.from(entity.getUserAccount()),
         entity.getLetterScenes().stream()
             .map(LetterSceneDto::from)
             .toList()
     );
   }
-  public Letter toEntity(User user){
+  public Letter toEntity(UserAccount userAccount){
     return Letter.of(
         title,
         letterType,
         thumbnailUrl,
-        user
+        userAccount
     );
   }
 

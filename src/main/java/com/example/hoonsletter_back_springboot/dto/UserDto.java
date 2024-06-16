@@ -1,6 +1,6 @@
 package com.example.hoonsletter_back_springboot.dto;
 
-import com.example.hoonsletter_back_springboot.domain.User;
+import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import java.util.List;
 
 public record UserDto(
@@ -22,7 +22,7 @@ public record UserDto(
         letterDtos);
   }
 
-  public static UserDto from(User entity){
+  public static UserDto from(UserAccount entity){
     return new UserDto(
         entity.getUsername(),
         entity.getPassword(),
@@ -34,8 +34,8 @@ public record UserDto(
     );
   }
 
-  public User toEntity(){
-    return User.of(username, password, nickname, profileUrl);
+  public UserAccount toEntity(){
+    return UserAccount.of(username, password, nickname, profileUrl);
   }
 
 }

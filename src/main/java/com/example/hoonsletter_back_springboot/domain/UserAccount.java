@@ -3,6 +3,8 @@ package com.example.hoonsletter_back_springboot.domain;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
@@ -21,7 +23,7 @@ import lombok.ToString;
     @Index(columnList = "username")
 })
 @ToString
-public class User {
+public class UserAccount {
   @Id
   @Column(length = 50, updatable = false, nullable = false)
   private String username;
@@ -36,27 +38,27 @@ public class User {
   private String profileUrl;
 
   @ToString.Exclude
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "userAccount", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Letter> letters;
 
-  protected User(){}
+  protected UserAccount(){}
 
-  private User(String username, String password, String nickname, String profileUrl) {
+  private UserAccount(String username, String password, String nickname, String profileUrl) {
     this.username = username;
     this.password = password;
     this.nickname = nickname;
     this.profileUrl = profileUrl;
   }
 
-  public static User of(String username, String password, String nickname, String profileUrl){
-    return new User(username, password, nickname, profileUrl);
+  public static UserAccount of(String username, String password, String nickname, String profileUrl){
+    return new UserAccount(username, password, nickname, profileUrl);
   }
 
   @Override
   public boolean equals(Object o){
     if(this == o) return true;
 
-    if(!(o instanceof User that)) return false;
+    if(!(o instanceof UserAccount that)) return false;
 
     return getUsername() != null && getUsername().equals(that.getUsername());
   }

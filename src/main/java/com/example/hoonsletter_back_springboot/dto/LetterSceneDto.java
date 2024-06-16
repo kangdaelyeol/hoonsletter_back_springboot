@@ -2,6 +2,7 @@ package com.example.hoonsletter_back_springboot.dto;
 
 import com.example.hoonsletter_back_springboot.domain.Letter;
 import com.example.hoonsletter_back_springboot.domain.LetterScene;
+import java.util.List;
 
 public record LetterSceneDto(
     Long id,
@@ -27,7 +28,7 @@ public record LetterSceneDto(
     return new LetterSceneDto(
         entity.getId(),
         entity.getOrder(),
-        entity.getLetter(),
+        LetterDto.from(entity.getLetter()),
         entity.getSceneMessages().stream()
             .map(SceneMessageDto::from)
             .toList(),

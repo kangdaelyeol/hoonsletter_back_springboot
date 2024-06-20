@@ -54,6 +54,7 @@ public class UserAccount {
     return new UserAccount(username, password, nickname, profileUrl);
   }
 
+
   @Override
   public boolean equals(Object o){
     if(this == o) return true;

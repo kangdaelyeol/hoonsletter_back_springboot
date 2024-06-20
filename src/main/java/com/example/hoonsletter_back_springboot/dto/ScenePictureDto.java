@@ -7,10 +7,10 @@ public record ScenePictureDto(
     Long id,
     int order,
     String url,
-    LetterSceneDto sceneDto
+    Long sceneId
 ) {
-  public static ScenePictureDto of(Long id, int order, String url, LetterSceneDto sceneDto){
-    return new ScenePictureDto(id, order, url, sceneDto);
+  public static ScenePictureDto of(Long id, int order, String url, Long sceneId){
+    return new ScenePictureDto(id, order, url, sceneId);
   }
 
   public static ScenePictureDto from(ScenePicture entity){
@@ -18,7 +18,7 @@ public record ScenePictureDto(
         entity.getId(),
         entity.getPartOrder(),
         entity.getUrl(),
-        LetterSceneDto.from(entity.getLetterScene())
+        entity.getLetterScene().getId()
     );
   }
 

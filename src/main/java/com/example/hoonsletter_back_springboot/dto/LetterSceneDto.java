@@ -7,18 +7,18 @@ import java.util.List;
 public record LetterSceneDto(
     Long id,
     int order,
-    LetterDto letterDto,
+    Long letterId,
     List<SceneMessageDto> messageDtos,
     List<ScenePictureDto> pictureDtos
 ) {
   public static LetterSceneDto of(Long id,
       int order,
-      LetterDto letterDto,
+      Long letterId,
       List<SceneMessageDto> messageDtos,
       List<ScenePictureDto> pictureDtos){
     return new LetterSceneDto(id,
         order,
-        letterDto,
+        letterId,
         messageDtos,
         pictureDtos);
   }
@@ -28,7 +28,7 @@ public record LetterSceneDto(
     return new LetterSceneDto(
         entity.getId(),
         entity.getPartOrder(),
-        LetterDto.from(entity.getLetter()),
+        entity.getLetter().getId(),
         entity.getSceneMessages().stream()
             .map(SceneMessageDto::from)
             .toList(),

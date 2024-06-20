@@ -11,15 +11,15 @@ public record SceneMessageDto(
     String content,
     MessageSizeType sizeType,
     MessageColorType colorType,
-    LetterSceneDto sceneDto
+    Long sceneId
     ) {
   public static SceneMessageDto of(Long id,
       int order,
       String content,
       MessageSizeType sizeType,
       MessageColorType colorType,
-      LetterSceneDto sceneDto){
-    return new SceneMessageDto(id, order, content, sizeType, colorType, sceneDto);
+      Long sceneId){
+    return new SceneMessageDto(id, order, content, sizeType, colorType, sceneId);
   }
 
   public static SceneMessageDto from(SceneMessage entity){
@@ -29,7 +29,7 @@ public record SceneMessageDto(
         entity.getContent(),
         entity.getSizeType(),
         entity.getColorType(),
-        LetterSceneDto.from(entity.getLetterScene())
+        entity.getLetterScene().getId()
     );
   }
   public SceneMessage toEntity(LetterScene letterScene){

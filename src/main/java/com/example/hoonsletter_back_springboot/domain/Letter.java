@@ -17,6 +17,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
@@ -66,7 +67,7 @@ public class Letter {
 
   @ToString.Exclude
   @OneToMany(mappedBy = "letter", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<LetterScene> letterScenes;
+  private List<LetterScene> letterScenes = new ArrayList<>();
 
   protected Letter(){} // no-args constructor
 
@@ -78,8 +79,12 @@ public class Letter {
     this.userAccount = userAccount;
   }
 
+  public static Letter of(String title, LetterType letterType, boolean updatable, String thumbnailUrl, UserAccount userAccount){
+    return new Letter(title, letterType, updatable, thumbnailUrl, userAccount);
+  }
+
   public static Letter of(String title, LetterType letterType, String thumbnailUrl, UserAccount userAccount){
-    return new Letter(title, letterType, true, thumbnailUrl, userAccount);
+    return Letter.of(title, letterType, true, thumbnailUrl, userAccount);
   }
 
   @Override

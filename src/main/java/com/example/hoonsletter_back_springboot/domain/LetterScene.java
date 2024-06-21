@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
@@ -35,11 +36,11 @@ public class LetterScene {
 
   @ToString.Exclude
   @OneToMany(mappedBy = "letterScene", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<SceneMessage> sceneMessages;
+  private List<SceneMessage> sceneMessages = new ArrayList<>();
 
   @ToString.Exclude
   @OneToMany(mappedBy = "letterScene", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ScenePicture> scenePictures;
+  private List<ScenePicture> scenePictures = new ArrayList<>();
 
   protected LetterScene(){} // no-args constructor
 

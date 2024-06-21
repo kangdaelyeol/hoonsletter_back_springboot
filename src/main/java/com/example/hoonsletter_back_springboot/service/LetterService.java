@@ -11,6 +11,7 @@ import com.example.hoonsletter_back_springboot.dto.SceneMessageDto;
 import com.example.hoonsletter_back_springboot.dto.ScenePictureDto;
 import com.example.hoonsletter_back_springboot.repository.LetterRepository;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,8 @@ public class LetterService {
   private final LetterRepository letterRepository;
 
   private final UserAccountRepository userAccountRepository;
+
+
 
   public void saveLetter(LetterDto dto){
     UserAccount userAccount = userAccountRepository.getReferenceById(dto.username());
@@ -41,6 +44,13 @@ public class LetterService {
     }
     letter.setLetterScenes(letterScenes);
     letterRepository.save(letter);
+  }
+
+  @Transactional(readOnly = true)
+  public LetterDto getLetter(Long letterId) {
+    return letterRepository.findById(letterId)
+        .map(LetterDto::from)
+        .orElseThrow(() -> new EntityNotFoundException("편지를 찾을 수 없습니다 - letterId: " + letterId));
   }
 
   private static LetterScene createLetterScene(LetterSceneDto sceneDto, Letter letter) {

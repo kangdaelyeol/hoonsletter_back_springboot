@@ -21,9 +21,11 @@ import com.example.hoonsletter_back_springboot.repository.LetterSceneRepository;
 import com.example.hoonsletter_back_springboot.repository.SceneMessageRepository;
 import com.example.hoonsletter_back_springboot.repository.ScenePictureRepository;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.apache.catalina.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,8 +52,8 @@ class LetterServiceTest {
   @Mock
   private ScenePictureRepository scenePictureRepository;
 
-  @Test
   @DisplayName("편지 정보를 입력하면 편지를 저장합니다.")
+  @Test
   void givenLetterInfo_whenSavingLetter_thenSavesLetter(){
     // Given
     String username = "testuser";
@@ -65,7 +67,62 @@ class LetterServiceTest {
     // Then
     then(userAccountRepository).should().getReferenceById(letterDto.username());
     then(letterRepository).should().save(any(Letter.class));
+  }
 
+
+  @DisplayName("편지 id정보로 조회하면, 편지 정보를 반환한다.")
+  @Test
+  void givenLetterId_whenSearching_thenReturnsLetterInfo(){
+    // Given
+    Long letterId = 10L;
+    String username = "testuser";
+    Letter letter = createLetter(username);
+    given(letterRepository.findById(letterId)).willReturn(Optional.of(letter));
+
+    // When
+    LetterDto dto = sut.getLetter(letterId);
+
+    // Then
+    assertThat(dto)
+        .hasFieldOrPropertyWithValue("title", letter.getTitle())
+        .hasFieldOrPropertyWithValue("letterType", letter.getType())
+        .hasFieldOrPropertyWithValue("thumbnailUrl", letter.getThumbnailUrl())
+        .hasFieldOrPropertyWithValue("createdAt", letter.getCreatedAt())
+        .hasFieldOrPropertyWithValue("updatable", letter.isUpdatable())
+        .hasFieldOrPropertyWithValue("username", letter.getUserAccount().getUsername())
+        .hasFieldOrPropertyWithValue("letterSceneDtos", letter.getLetterScenes().stream()
+            .map(LetterSceneDto::from)
+            .toList());
+    then(letterRepository).should().findById(letterId);
+  }
+
+  Letter createLetter(String username) {
+    UserAccount user = createUser(username);
+    LetterDto letterDto = createLetterDto(user.getUsername());
+    return Letter.of(
+        letterDto.title(),
+        letterDto.letterType(),
+        letterDto.updatable(),
+        letterDto.thumbnailUrl(),
+        user
+    );
+  }
+
+  @DisplayName("id에 대한 편지 정보가 없으면 예외를 던진다.")
+  @Test
+  void givenNonexistentLetterId_whenSearching_thenThrowsException() {
+    // Given
+    Long letterId = 0L;
+    given(letterRepository.findById(letterId)).willReturn(Optional.empty());
+
+    // When
+    Throwable t = catchThrowable(() -> sut.getLetter(letterId));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("편지를 찾을 수 없습니다 - letterId: " + letterId);
+    then(letterRepository).should().findById(letterId);
   }
 
   LetterDto createLetterDto(String username) {

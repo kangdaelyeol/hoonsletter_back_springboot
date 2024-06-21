@@ -15,14 +15,13 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -61,19 +60,39 @@ public class Letter {
 
   @ToString.Exclude
   @JoinColumn(name = "user_id")
-  @ManyToOne(fetch = FetchType.LAZY)
-  private User user;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  private UserAccount userAccount;
 
 
-  // Letter -> LetterMessage 단방향 매핑
   @ToString.Exclude
-  @JoinColumn(name = "letter_id")
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-  private List<LetterMessage> letterMessages;
+  @OneToMany(mappedBy = "letter", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<LetterScene> letterScenes;
 
-  // Letter -> LetterPicture 단방향 매핑
-  @ToString.Exclude
-  @JoinColumn(name = "letter_id")
-  @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-  private List<LetterPicture> letterPictures;
+  protected Letter(){} // no-args constructor
+
+  private Letter(String title, LetterType letterType, boolean updatable, String thumbnailUrl, UserAccount userAccount){
+    this.title = title;
+    this.type = letterType;
+    this.thumbnailUrl = thumbnailUrl;
+    this.updatable = updatable;
+    this.userAccount = userAccount;
+  }
+
+  public static Letter of(String title, LetterType letterType, String thumbnailUrl, UserAccount userAccount){
+    return new Letter(title, letterType, true, thumbnailUrl, userAccount);
+  }
+
+  @Override
+  public boolean equals(Object o){
+    if(this == o) return true;
+
+    if(!(o instanceof Letter that)) return false;
+
+    return getId() != null && getId().equals(that.getId());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.getId());
+  }
 }

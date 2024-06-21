@@ -29,13 +29,13 @@
 [2. **회원가입**](#3-회원가입)
 - 사용자의 정보를 입력해서 회원 가입을 하거나 카카오 인증을 통해 회원 가입을 할 수 있습니다.
    
-[3. **편지 보기**](#6-편지-보기)
+[3. **편지 보기**](#5-편지-보기)
 - 다른 사용자가 제작한 편지를 볼 수 있습니다.
 
 [4. **편지 조회**](#4-전체-편지-조회)
 - 다른 사용자가 제작한 편지를 조회할 수 있습니다.
 
-   [4.1 **편지 검색**](#5-편지-검색)
+   [4.1 **편지 검색**](#4-전체-편지-조회)
    - 사용자는 제작한 편지들을 사용자의 요구에 맞게 검색을 할 수 있습니다.
    
    [4.2 **편지 정렬**](#4-전체-편지-조회)
@@ -46,10 +46,10 @@
 [1. **로그아웃**](#2-로그아웃)
 - 사용자는 로그아웃을 할 수 있습니다.
 
-[2. **편지 제작**](#7-편지-생성)
+[2. **편지 제작**](#6-편지-생성)
 - 사용자는 원하는 템플릿을 선택하여 편지를 제작할 수 있습니다.
 
-#### [3. **편지 수정**](#8-편지-수정)
+#### [3. **편지 수정**](#7-편지-수정)
  - 사용자는 제작한 편지를 수정할 수 있습니다.
  - 제작한 편지는 제작 후 **3일** 까지만 수정이 가능하고 그 이후는 불가능 합니다.
 
@@ -59,7 +59,7 @@
 [5. **편지 공유**](#10-편지-공유)
 - 사용자는 제작한 편지를 링크를 통해 공유할 수 있습니다.
 
-[6. **편지 보기**](#6-편지-보기)
+[6. **편지 보기**](#5-편지-보기)
 - 사용자는 다른 사용자가 제작한 편지를 볼 수 있습니다.
 
 [7. **편지 조회**](#4-전체-편지-조회)
@@ -131,8 +131,9 @@
 - ### name
   - [**user**](#user)
   - [**letter**](#letter)
-  - [**letter_message**](#letter_message)
-  - [**letter_picture**](#letter_picture)
+  - [**letter_scene**](#letterscene)
+  - [**scene_message**](#scenemessage)
+  - [**scene_picture**](#scenepicture)
 - ### Attributes
   - ### user
     - **username(PK)** `VARCHAR(255) NOT NULL updateable = false`
@@ -167,25 +168,39 @@
     - **username(FK)** `VARCHAR(50) NOT NULL ON DELETE CASCADE`
       - user를 참조하는 외래키
       - 편지는 반드시 소유자가 있어야 하므로 NULL값을 가질 수 없고 부모 엔티티가 삭제되면 자신도 삭제 됩니다.
-  - ### letter_picture
-    - **letter_picture_id(PK)** `BIG_INT NOT NULL`
+  - ### letter_scene
+    - **scene_id(PK)** `BIG_INT NOT NULL AUTO_INCREMENT`
+      - 장면의 uid
+    - **part_order** `INT(11) NOT NULL`
+      - 편지에 포함된 장면의 순서.
+      - 편지는 여러 장의 장면을 포함하고 정해진 순서대로 표현 되어야 합니다.
+      - 장면을 정해진 순서대로 표현하기 위한 필드 입니다.
+    - **letter_id(FK)** `BIGINT NOT NULL ON DELETE CASCADE`
+      - letter를 참조하는 외래키
+      - 장면 반드시 소유하는 편지가 있어야 하므로 NULL값을 가질 수 없고 부모 엔티티가 삭제되면 자신도 삭제 됩니다.
+  - ### scene_picture
+    - **picture_id(PK)** `BIG_INT NOT NULL`
       - 편지의 사진 엔티티 고유 id
-    - **order** `INT(11) NOT NULL`
-      - 편지에 포함된 사진의 순서.
-      - 편지는 여러 장의 사진을 포함하고 정해진 순서대로 표현 되어야 합니다. 
+    - **part_order** `INT(11) NOT NULL`
+      - 장면에 포함된 사진의 순서.
+      - 장면은 여러 장의 사진을 포함하고 정해진 순서대로 표현 되어야 합니다. 
       - 사진을 정해진 순서대로 표현하기 위한 필드 입니다.
     - **url** `VARCHAR(255) NOT NULL`
       - 사진의 url
-    - **letter_id(FK)** `BIGINT NOT NULL ON DELETE CASCADE`
-      - letter를 참조하는 외래키
-  - ### letter_message
-    - **letter_message_id(PK)** `BIG_INT NOT NULL`
+    - **scene_id(FK)** `BIGINT NOT NULL ON DELETE CASCADE`
+      - scene을 참조하는 외래키
+  - ### scene_message
+    - **message_id(PK)** `BIG_INT NOT NULL`
       - 편지의 사진 엔티티 고유 id
-    - **order** `INT(11) NOT NULL`
-      - 편지에 포함된 메시지의 순서.
-      - 편지는 여러 메시지를 포함하고 정해진 순서대로 표현 되어야 합니다.
+    - **part_order** `INT(11) NOT NULL`
+      - 장면에 포함된 메시지의 순서.
+      - 장면은 여러 메시지를 포함하고 정해진 순서대로 표현 되어야 합니다.
       - 메시지을 정해진 순서대로 표현하기 위한 필드 입니다.
     - **content** `VARCHAR(255) NOT NULL`
       - 메시지 내용
+    - **size_type** `VARCHAR(20) NOT NULL`
+      - 메시지 글자 크기 타입
+    - **colot_type** `VARCHAR(20) NOT NULL`
+      - 메시지 글자 색상 타입
     - **letter_id(FK)** `BIGINT NOT NULL ON DELETE CASCADE`
-      - letter를 참조하는 외래키
+      - scene를 참조하는 외래키

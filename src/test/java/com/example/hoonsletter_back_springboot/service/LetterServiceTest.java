@@ -39,18 +39,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class LetterServiceTest {
 
   @InjectMocks
-  private LetterService sut;
+  LetterService sut;
 
   @Mock
-  private LetterRepository letterRepository;
+  LetterRepository letterRepository;
   @Mock
-  private UserAccountRepository userAccountRepository;
+  UserAccountRepository userAccountRepository;
   @Mock
-  private LetterSceneRepository letterSceneRepository;
+  LetterSceneRepository letterSceneRepository;
   @Mock
-  private SceneMessageRepository sceneMessageRepository;
+  SceneMessageRepository sceneMessageRepository;
   @Mock
-  private ScenePictureRepository scenePictureRepository;
+  ScenePictureRepository scenePictureRepository;
 
   @DisplayName("편지 정보를 입력하면 편지를 저장합니다.")
   @Test

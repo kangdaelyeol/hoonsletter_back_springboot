@@ -16,11 +16,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 @DisplayName("JPA 연결 테스트")
 @DataJpaTest
 class JpaRepositoryTest {
-  private final UserAccountRepository userAccountRepository;
-  private final LetterRepository letterRepository;
-  private final LetterSceneRepository letterSceneRepository;
-  private final SceneMessageRepository sceneMessageRepository;
-  private final ScenePictureRepository scenePictureRepository;
+  final UserAccountRepository userAccountRepository;
+  final LetterRepository letterRepository;
+  final LetterSceneRepository letterSceneRepository;
+  final SceneMessageRepository sceneMessageRepository;
+  final ScenePictureRepository scenePictureRepository;
 
   JpaRepositoryTest(
       @Autowired UserAccountRepository userAccountRepository,

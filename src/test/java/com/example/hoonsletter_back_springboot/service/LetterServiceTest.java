@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willDoNothing;
 
 import com.example.hoonsletter_back_springboot.domain.Letter;
 import com.example.hoonsletter_back_springboot.domain.LetterScene;
@@ -96,18 +97,6 @@ class LetterServiceTest {
     then(letterRepository).should().findById(letterId);
   }
 
-  Letter createLetter(String username) {
-    UserAccount user = createUser(username);
-    LetterDto letterDto = createLetterDto(user.getUsername());
-    return Letter.of(
-        letterDto.title(),
-        letterDto.letterType(),
-        letterDto.updatable(),
-        letterDto.thumbnailUrl(),
-        user
-    );
-  }
-
   @DisplayName("id에 대한 편지 정보가 없으면 예외를 던진다.")
   @Test
   void givenNonexistentLetterId_whenSearching_thenThrowsException() {
@@ -123,6 +112,35 @@ class LetterServiceTest {
         .isInstanceOf(EntityNotFoundException.class)
         .hasMessage("편지를 찾을 수 없습니다 - letterId: " + letterId);
     then(letterRepository).should().findById(letterId);
+  }
+
+  @DisplayName("편지의 id와 유저 아이디를 입력하면 편지를 삭제한다.")
+  @Test
+  void givenLetterIdAndUsername_whenDeleting_thenDeletesLetter(){
+    // Given
+    Long letterId = 1L;
+    String username = "test1";
+    willDoNothing().given(letterRepository).deleteByIdAndUserAccount_Username(letterId, username);
+    willDoNothing().given(letterRepository).flush();
+
+    // When
+    sut.deleteLetter(letterId, username);
+
+    // Then
+    then(letterRepository).should().deleteByIdAndUserAccount_Username(letterId, username);
+    then(letterRepository).should().flush();
+  }
+
+  Letter createLetter(String username) {
+    UserAccount user = createUser(username);
+    LetterDto letterDto = createLetterDto(user.getUsername());
+    return Letter.of(
+        letterDto.title(),
+        letterDto.letterType(),
+        letterDto.updatable(),
+        letterDto.thumbnailUrl(),
+        user
+    );
   }
 
   LetterDto createLetterDto(String username) {

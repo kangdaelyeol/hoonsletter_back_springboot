@@ -43,7 +43,7 @@ public class LetterService {
 
     }
     letter.setLetterScenes(letterScenes);
-    letterRepository.save(letter);
+    Letter savedLetter = letterRepository.save(letter);
   }
 
   @Transactional(readOnly = true)
@@ -51,6 +51,11 @@ public class LetterService {
     return letterRepository.findById(letterId)
         .map(LetterDto::from)
         .orElseThrow(() -> new EntityNotFoundException("편지를 찾을 수 없습니다 - letterId: " + letterId));
+  }
+
+  public void deleteLetter(Long letterId, String username) {
+    letterRepository.deleteByIdAndUserAccount_Username(letterId, username);
+    letterRepository.flush();
   }
 
   private static LetterScene createLetterScene(LetterSceneDto sceneDto, Letter letter) {

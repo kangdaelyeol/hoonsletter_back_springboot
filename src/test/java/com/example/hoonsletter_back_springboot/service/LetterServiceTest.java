@@ -7,7 +7,6 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
 
 import com.example.hoonsletter_back_springboot.domain.Letter;
-import com.example.hoonsletter_back_springboot.domain.LetterScene;
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.domain.constant.LetterType;
 import com.example.hoonsletter_back_springboot.domain.constant.MessageColorType;
@@ -17,7 +16,7 @@ import com.example.hoonsletter_back_springboot.dto.LetterDto;
 import com.example.hoonsletter_back_springboot.dto.LetterSceneDto;
 import com.example.hoonsletter_back_springboot.dto.SceneMessageDto;
 import com.example.hoonsletter_back_springboot.dto.ScenePictureDto;
-import com.example.hoonsletter_back_springboot.dto.UserDto;
+import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.repository.LetterRepository;
 import com.example.hoonsletter_back_springboot.repository.LetterSceneRepository;
 import com.example.hoonsletter_back_springboot.repository.SceneMessageRepository;
@@ -28,7 +27,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.apache.catalina.User;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @DisplayName("Business Logic - Letter")
 @ExtendWith(MockitoExtension.class) // Unit Test for service layer
@@ -62,14 +62,15 @@ class LetterServiceTest {
     // Given
     String username = "testuser";
     LetterDto letterDto = createLetterDto(username);
-    given(userAccountRepository.getReferenceById(letterDto.username())).willReturn(createUser(username));
+    UserAccount user = createUser(username);
 
+    given(userAccountRepository.getReferenceById(letterDto.userAccountDto().username())).willReturn(user);
 
     // When
     sut.saveLetter(letterDto);
 
     // Then
-    then(userAccountRepository).should().getReferenceById(letterDto.username());
+    then(userAccountRepository).should().getReferenceById(letterDto.userAccountDto().username());
     then(letterRepository).should().save(any(Letter.class));
   }
 
@@ -111,7 +112,7 @@ class LetterServiceTest {
     // Given
     Long letterId = 10L;
     String username = "testuser";
-    Letter letter = createLetter(username);
+    Letter letter = createLetter(username, letterId);
     given(letterRepository.findById(letterId)).willReturn(Optional.of(letter));
 
     // When
@@ -124,12 +125,14 @@ class LetterServiceTest {
         .hasFieldOrPropertyWithValue("thumbnailUrl", letter.getThumbnailUrl())
         .hasFieldOrPropertyWithValue("createdAt", letter.getCreatedAt())
         .hasFieldOrPropertyWithValue("updatable", letter.isUpdatable())
-        .hasFieldOrPropertyWithValue("username", letter.getUserAccount().getUsername())
+        .hasFieldOrPropertyWithValue("userAccountDto", UserAccountDto.from(letter.getUserAccount()))
         .hasFieldOrPropertyWithValue("letterSceneDtos", letter.getLetterScenes().stream()
             .map(LetterSceneDto::from)
             .toList());
     then(letterRepository).should().findById(letterId);
   }
+
+
 
   @DisplayName("id에 대한 편지 정보가 없으면 예외를 던진다.")
   @Test
@@ -165,40 +168,123 @@ class LetterServiceTest {
     then(letterRepository).should().flush();
   }
 
-  Letter createLetter(String username) {
+  @DisplayName("편지의 수정 정보를 입력하면, 편지를 수정한다")
+  @Test
+  void givenLetterIdAndModifiedInfo_whenUpdatingLetter_thenUpdatesLetter() {
+    // Given
+    String username = "test";
+    Long letterId = 10L;
+    Letter letter = createLetter(username, letterId);
+    LetterDto dto = createLetterDto(username, "newTitle", "newThumbnail", "newMessage");
+    given(userAccountRepository.getReferenceById(dto.userAccountDto().username())).willReturn(createUser(username));
+    given(letterRepository.getReferenceById(dto.id())).willReturn(letter);
+
+    // When
+    sut.updateLetter(letter.getId(), dto);
+
+    // Then
+    then(letterRepository).should().flush();
+    then(letterRepository).should().getReferenceById(dto.id());
+    then(userAccountRepository).should().getReferenceById(username);
+    assertThat(letter)
+        .hasFieldOrPropertyWithValue("title", dto.title())
+        .hasFieldOrPropertyWithValue("thumbnailUrl", dto.thumbnailUrl())
+        .extracting("letterScenes", as(InstanceOfAssertFactories.COLLECTION))
+        .hasSize(5);
+
+    letter.getLetterScenes().forEach(letterScene -> {
+      assertThat(letterScene).extracting("sceneMessages", as(InstanceOfAssertFactories.COLLECTION))
+              .hasSize(3)
+                  .extracting("content")
+                      .containsExactly("newMessage", "newMessage", "newMessage");
+
+      letterScene.getSceneMessages().forEach(message -> {
+        assertThat(message)
+            .hasFieldOrPropertyWithValue("content", "newMessage");
+      });
+    });
+  }
+
+  @DisplayName("편지가 수정 불가능한 상태이면, 편지를 수정하지 않는다.")
+  @Test
+  void givenNonUpdatableLetterIdAndModifiedInfo_whenUpdatingLetter_thenWillDoNothing(){
+    // Given
+    String username = "testUser";
+    Long letterId = 10L;
+    Letter letter = createLetter(username, letterId);
+    LetterDto dto = createLetterDto(username, "newTitle", "newThumbnail", "newMessage");
+
+    // set updatable
+    ReflectionTestUtils.setField(letter, "updatable", false);
+
+    given(letterRepository.getReferenceById(letterId)).willReturn(letter);
+
+
+    // When
+    sut.updateLetter(letter.getId(), dto);
+
+    // Then
+    then(letterRepository).should().getReferenceById(letter.getId());
+    then(letterRepository).shouldHaveNoMoreInteractions();
+    then(userAccountRepository).shouldHaveNoInteractions();
+  }
+
+  Letter createLetter(String username, String title, String thumbnail, Long letterId){
     UserAccount user = createUser(username);
-    LetterDto letterDto = createLetterDto(user.getUsername());
-    return Letter.of(
+    LetterDto letterDto = createLetterDto(user.getUsername(), title, thumbnail);
+    Letter letter = Letter.of(
         letterDto.title(),
         letterDto.letterType(),
         letterDto.updatable(),
         letterDto.thumbnailUrl(),
         user
     );
+    ReflectionTestUtils.setField(letter, "id", letterId);
+    return letter;
   }
 
-  LetterDto createLetterDto(String username) {
+  Letter createLetter(String username, Long letterId) {
+    String title = "testTitle";
+    String thumbnail = "testThumbnail";
+
+    return createLetter(username, title, thumbnail, letterId);
+  }
+
+
+  LetterDto createLetterDto(String username, String title, String thumbnail, String message) {
     Long letterId = 10L;
-    List<LetterSceneDto> letterSceneDtos = createLetterSceneDtoList(letterId);
+    List<LetterSceneDto> letterSceneDtos = createLetterSceneDtoList(letterId, message);
 
     return LetterDto.of(
       letterId,
-        "testTitle",
+        title,
         LetterType.TYPE1,
-        "testThumbnail",
+        thumbnail,
         LocalDateTime.now(),
         true,
-        username,
+        createUserDto(username),
         letterSceneDtos
     );
   }
+  LetterDto createLetterDto(String username, String title, String thumbnail) {
+    return createLetterDto(username, title, thumbnail, "testContent");
+  }
+  LetterDto createLetterDto(String username, String message){
+    String title = "testTitle";
+    String thumbnail = "testThumbnail";
+    return createLetterDto(username, title, thumbnail, message);
+  }
+  LetterDto createLetterDto(String username){
+    return createLetterDto(username, "testContent");
+  }
 
-  List<LetterSceneDto> createLetterSceneDtoList(Long letterId) {
-    int size = 3;
+
+  List<LetterSceneDto> createLetterSceneDtoList(Long letterId, String message) {
+    int size = 5;
     List<LetterSceneDto> letterSceneDtoList = new ArrayList<>();
     for(int i = 100 ; i < 100 + size; i++){
       Long sceneId = (long)i; // implicit auto boxing "Long.valueOf(i)" instead
-      List<SceneMessageDto> messageDtoList = createMessageDtoList(sceneId);
+      List<SceneMessageDto> messageDtoList = createMessageDtoList(sceneId, message);
       List<ScenePictureDto> pictureDtoList = createPictureDtoList(sceneId);
 
       LetterSceneDto letterSceneDto = LetterSceneDto.of(
@@ -213,7 +299,11 @@ class LetterServiceTest {
     return letterSceneDtoList;
   }
 
-  List<SceneMessageDto> createMessageDtoList(Long sceneId) {
+  List<LetterSceneDto> createLetterSceneDtoList(Long letterId){
+    return createLetterSceneDtoList(letterId, "testContent");
+  }
+
+  List<SceneMessageDto> createMessageDtoList(Long sceneId, String message) {
     List<SceneMessageDto> messageDtoList = new ArrayList<>();
     int size = 3;
     for(int i = 100; i < 100 + size; i++) {
@@ -221,7 +311,7 @@ class LetterServiceTest {
       SceneMessageDto messageDto = SceneMessageDto.of(
           messageId,
           i,
-          "testContent",
+          message,
           MessageSizeType.MEDIUM,
           MessageColorType.BLACK,
           sceneId
@@ -229,6 +319,10 @@ class LetterServiceTest {
       messageDtoList.add(messageDto);
     }
     return messageDtoList;
+  }
+
+  List<SceneMessageDto> createMessageDtoList(Long sceneId) {
+    return createMessageDtoList(sceneId, "testContent");
   }
 
   List<ScenePictureDto> createPictureDtoList(Long sceneId) {
@@ -247,14 +341,14 @@ class LetterServiceTest {
     return pictureDtoList;
   }
 
-  UserDto createUserDto() {
-    String username = "testuser";
-    return UserDto.of(
+  UserAccountDto createUserDto(String username) {
+    String title = "testTitlte";
+    String thumbnail = "testThumbnail";
+    return UserAccountDto.of(
         username,
         "testpw",
         "testnickname",
-        "testprofile",
-        List.of(createLetterDto(username))
+        "testprofile"
     );
   }
 

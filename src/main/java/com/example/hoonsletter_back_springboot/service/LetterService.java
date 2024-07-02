@@ -15,12 +15,15 @@ import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional
@@ -31,7 +34,7 @@ public class LetterService {
   private final UserAccountRepository userAccountRepository;
 
   public void saveLetter(LetterDto dto){
-    UserAccount userAccount = userAccountRepository.getReferenceById(dto.username());
+    UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().username());
 
     Letter letter = dto.toEntity(userAccount);
     List<LetterSceneDto> letterSceneDtos = dto.letterSceneDtos();
@@ -73,7 +76,38 @@ public class LetterService {
     };
   }
 
+  public void updateLetter(Long letterId, LetterDto dto){
+    try {
+      Letter letter = letterRepository.getReferenceById(letterId);
+      // check updatable
+      if(!letter.isUpdatable()) return;
 
+      UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().username());
+
+      if(letter.getUserAccount().equals(userAccount)){
+        if(dto.title() != null){
+          letter.setTitle(dto.title());
+        }
+
+        if(dto.thumbnailUrl() != null){
+          letter.setThumbnailUrl(dto.thumbnailUrl());
+        }
+
+        List<LetterScene> letterScenes = new ArrayList<>();
+        dto.letterSceneDtos().forEach(letterScene -> {
+          LetterScene scene = createLetterScene(letterScene, letter);
+          letterScenes.add(scene);
+        });
+
+        letter.getLetterScenes().clear();
+        letter.setLetterScenes(letterScenes);
+        letterRepository.flush();
+      }
+
+    } catch (EntityNotFoundException e){
+      log.warn("게시글 업데이트 실패. 업데이트에 필요한 정보를 찾을 수 없습니다 - ", e.getLocalizedMessage());
+    }
+  }
 
   private static LetterScene createLetterScene(LetterSceneDto sceneDto, Letter letter) {
     List<SceneMessage> sceneMessages = new ArrayList<>();

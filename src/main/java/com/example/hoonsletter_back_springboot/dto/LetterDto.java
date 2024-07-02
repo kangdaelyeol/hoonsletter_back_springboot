@@ -13,7 +13,7 @@ public record LetterDto(
     String thumbnailUrl,
     LocalDateTime createdAt,
     boolean updatable,
-    String username,
+    UserAccountDto userAccountDto,
     List<LetterSceneDto> letterSceneDtos
     ) {
   public static LetterDto of(
@@ -23,7 +23,7 @@ public record LetterDto(
       String thumbnailUrl,
       LocalDateTime createdAt,
       boolean updatable,
-      String username,
+      UserAccountDto userAccountDto,
       List<LetterSceneDto> letterSceneDtos
   ){
     return new LetterDto(id,
@@ -32,7 +32,7 @@ public record LetterDto(
         thumbnailUrl,
         createdAt,
         updatable,
-        username,
+        userAccountDto,
         letterSceneDtos);
   }
 
@@ -45,7 +45,7 @@ public record LetterDto(
         entity.getThumbnailUrl(),
         entity.getCreatedAt(),
         entity.isUpdatable(),
-        entity.getUserAccount().getUsername(),
+        UserAccountDto.from(entity.getUserAccount()),
         entity.getLetterScenes().stream()
             .map(LetterSceneDto::from)
             .toList()

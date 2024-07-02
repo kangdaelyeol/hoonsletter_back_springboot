@@ -7,19 +7,18 @@ public record UserDto(
     String username,
     String password,
     String nickname,
-    String profileUrl,
-    List<LetterDto> letterDtos
+    String profileUrl
 ) {
   public static UserDto of(String username,
       String password,
       String nickname,
-      String profileUrl,
-      List<LetterDto> letterDtos){
+      String profileUrl
+      ){
     return new UserDto(username,
         password,
         nickname,
-        profileUrl,
-        letterDtos);
+        profileUrl
+        );
   }
 
   public static UserDto from(UserAccount entity){
@@ -27,10 +26,7 @@ public record UserDto(
         entity.getUsername(),
         entity.getPassword(),
         entity.getNickname(),
-        entity.getProfileUrl(),
-        entity.getLetters().stream()
-            .map(LetterDto::from)
-            .toList()
+        entity.getProfileUrl()
     );
   }
 

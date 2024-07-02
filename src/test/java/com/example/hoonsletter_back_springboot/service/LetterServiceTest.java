@@ -12,6 +12,7 @@ import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.domain.constant.LetterType;
 import com.example.hoonsletter_back_springboot.domain.constant.MessageColorType;
 import com.example.hoonsletter_back_springboot.domain.constant.MessageSizeType;
+import com.example.hoonsletter_back_springboot.domain.constant.SearchType;
 import com.example.hoonsletter_back_springboot.dto.LetterDto;
 import com.example.hoonsletter_back_springboot.dto.LetterSceneDto;
 import com.example.hoonsletter_back_springboot.dto.SceneMessageDto;
@@ -34,6 +35,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @DisplayName("Business Logic - Letter")
 @ExtendWith(MockitoExtension.class) // Unit Test for service layer
@@ -70,6 +73,37 @@ class LetterServiceTest {
     then(letterRepository).should().save(any(Letter.class));
   }
 
+  @DisplayName("검색어 없이 편지를 검색하면, 편지 페이지를 반환한다")
+  @Test
+  void givenNoSearchParameters_whenSearching_thenReturnsLetterPage(){
+    // Given
+    Pageable pageable = Pageable.ofSize(10);
+    given(letterRepository.findAll(pageable)).willReturn(Page.empty());
+
+    // When
+    Page<LetterDto> letters = sut.searchLetters(null, null, pageable);
+
+    // Then
+    assertThat(letters).isEmpty();
+    then(letterRepository).should().findAll(pageable);
+  }
+
+  @DisplayName("검색어와 함께 편지를 검색하면, 편지 페이지를 반환한다.")
+  @Test
+  void givenSearchParameters_whenSearching_thenReturnsLetterPage(){
+    // Given
+    Pageable pageable = Pageable.ofSize(10);
+    SearchType searchType = SearchType.TITLE;
+    String keyword = "testTitle";
+    given(letterRepository.findByTitleContaining(keyword, pageable)).willReturn(Page.empty());
+
+    // When
+    Page<LetterDto> letters = sut.searchLetters(searchType, keyword, pageable);
+
+    // Then
+    assertThat(letters).isEmpty();
+    then(letterRepository).should().findByTitleContaining(keyword, pageable);
+  }
 
   @DisplayName("편지 id정보로 조회하면, 편지 정보를 반환한다.")
   @Test

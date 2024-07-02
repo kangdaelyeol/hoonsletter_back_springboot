@@ -97,7 +97,8 @@
    - `sort_by` : 정렬 기준 (작성자, 작성일)
    - `direction` : 정렬 순서(asc 또는 desc)
    - `page` : 페이지 번호
-   - `search_param`: 검색어
+   - `keyword`: 검색어
+   - `search_type` : 검색 옵션
 
 #### **5. 편지 보기**
 - HTTP Request: `GET` /api/letters/{id}

@@ -5,6 +5,7 @@ import com.example.hoonsletter_back_springboot.domain.LetterScene;
 import com.example.hoonsletter_back_springboot.domain.SceneMessage;
 import com.example.hoonsletter_back_springboot.domain.ScenePicture;
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
+import com.example.hoonsletter_back_springboot.domain.constant.SearchType;
 import com.example.hoonsletter_back_springboot.dto.LetterDto;
 import com.example.hoonsletter_back_springboot.dto.LetterSceneDto;
 import com.example.hoonsletter_back_springboot.dto.SceneMessageDto;
@@ -15,6 +16,8 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +29,6 @@ public class LetterService {
   private final LetterRepository letterRepository;
 
   private final UserAccountRepository userAccountRepository;
-
-
 
   public void saveLetter(LetterDto dto){
     UserAccount userAccount = userAccountRepository.getReferenceById(dto.username());
@@ -57,6 +58,22 @@ public class LetterService {
     letterRepository.deleteByIdAndUserAccount_Username(letterId, username);
     letterRepository.flush();
   }
+
+  @Transactional(readOnly = true)
+  public Page<LetterDto> searchLetters(SearchType searchType, String keyword, Pageable pageable){
+    if(keyword == null || keyword.isBlank()){
+      return letterRepository.findAll(pageable).map(LetterDto::from);
+    }
+
+    return switch (searchType){
+      case TITLE ->
+        letterRepository.findByTitleContaining(keyword, pageable).map(LetterDto::from);
+      case NICKNAME ->
+        letterRepository.findByUserAccount_NicknameContaining(keyword, pageable).map(LetterDto::from);
+    };
+  }
+
+
 
   private static LetterScene createLetterScene(LetterSceneDto sceneDto, Letter letter) {
     List<SceneMessage> sceneMessages = new ArrayList<>();

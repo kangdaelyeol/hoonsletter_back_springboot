@@ -1,36 +1,31 @@
 package com.example.hoonsletter_back_springboot.dto;
 
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
-import java.util.List;
 
-public record UserDto(
+public record UserAccountDto(
     String username,
     String password,
     String nickname,
-    String profileUrl,
-    List<LetterDto> letterDtos
+    String profileUrl
 ) {
-  public static UserDto of(String username,
+  public static UserAccountDto of(String username,
       String password,
       String nickname,
-      String profileUrl,
-      List<LetterDto> letterDtos){
-    return new UserDto(username,
+      String profileUrl
+      ){
+    return new UserAccountDto(username,
         password,
         nickname,
-        profileUrl,
-        letterDtos);
+        profileUrl
+        );
   }
 
-  public static UserDto from(UserAccount entity){
-    return new UserDto(
+  public static UserAccountDto from(UserAccount entity){
+    return new UserAccountDto(
         entity.getUsername(),
         entity.getPassword(),
         entity.getNickname(),
-        entity.getProfileUrl(),
-        entity.getLetters().stream()
-            .map(LetterDto::from)
-            .toList()
+        entity.getProfileUrl()
     );
   }
 

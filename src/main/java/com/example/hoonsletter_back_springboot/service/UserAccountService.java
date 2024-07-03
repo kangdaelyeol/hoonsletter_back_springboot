@@ -33,7 +33,23 @@ public class UserAccountService {
       throw new IllegalArgumentException("아이디는 최소 8자 이상입니다.");
     }
 
-    String newPassword = passwordEncoder.encode(dto.password());
+    if(dto.username().trim().contains(" ")){
+      throw new IllegalArgumentException("아이디에 공백이 포함되면 안됩니다.");
+    }
+
+    if(dto.password().trim().length() < 8){
+      throw new IllegalArgumentException("비밀번호는 최소 8자 이상입니다.");
+    }
+
+    if(dto.password().trim().contains(" ")){
+      throw new IllegalArgumentException("비밀번호에 공백이 포함되면 안됩니다.");
+    }
+
+    if(!dto.nickname().trim().isEmpty() && dto.nickname().trim().contains(" ")){
+      throw new IllegalArgumentException("닉네임에 공백이 포함되면 안됩니다.");
+    }
+
+    String newPassword = passwordEncoder.encode(dto.password().trim());
     String nickname;
     String profileUrl;
     if(dto.nickname().trim().isBlank() || dto.nickname().trim().isEmpty())

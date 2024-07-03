@@ -83,26 +83,26 @@ public class LetterService {
       if(!letter.isUpdatable()) return;
 
       UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().username());
+      // check equality
+      if(!letter.getUserAccount().equals(userAccount)) return;
 
-      if(letter.getUserAccount().equals(userAccount)){
-        if(dto.title() != null){
-          letter.setTitle(dto.title());
-        }
-
-        if(dto.thumbnailUrl() != null){
-          letter.setThumbnailUrl(dto.thumbnailUrl());
-        }
-
-        List<LetterScene> letterScenes = new ArrayList<>();
-        dto.letterSceneDtos().forEach(letterScene -> {
-          LetterScene scene = createLetterScene(letterScene, letter);
-          letterScenes.add(scene);
-        });
-
-        letter.getLetterScenes().clear();
-        letter.setLetterScenes(letterScenes);
-        letterRepository.flush();
+      if(dto.title() != null){
+        letter.setTitle(dto.title());
       }
+
+      if(dto.thumbnailUrl() != null){
+        letter.setThumbnailUrl(dto.thumbnailUrl());
+      }
+
+      List<LetterScene> letterScenes = new ArrayList<>();
+      dto.letterSceneDtos().forEach(letterScene -> {
+        LetterScene scene = createLetterScene(letterScene, letter);
+        letterScenes.add(scene);
+      });
+
+      letter.getLetterScenes().clear();
+      letter.setLetterScenes(letterScenes);
+      letterRepository.flush();
 
     } catch (EntityNotFoundException e){
       log.warn("게시글 업데이트 실패. 업데이트에 필요한 정보를 찾을 수 없습니다 - ", e.getLocalizedMessage());

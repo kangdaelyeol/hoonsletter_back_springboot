@@ -229,6 +229,48 @@ class LetterServiceTest {
     then(userAccountRepository).shouldHaveNoInteractions();
   }
 
+  @DisplayName("사용자와 편지 소유자가 다르면, 편지를 수정하지 않는다")
+  @Test
+  void givenLetterInfoAndDiffUserAccountInfo_whenUpdatingLetter_thenWillDoNothing() {
+    // Given
+    String username = "testUser1";
+    String diffUsername = "diffUser";
+    Long letterId = 10L;
+    Letter letter = createLetter(username, letterId);
+    LetterDto dto = createLetterDto(diffUsername, "newTitle", "newThumb", "newMessage");
+
+    given(letterRepository.getReferenceById(letterId)).willReturn(letter);
+    given(userAccountRepository.getReferenceById(dto.userAccountDto().username())).willReturn(createUser(diffUsername));
+
+    // When
+    sut.updateLetter(letterId, dto);
+
+    // Then
+    then(letterRepository).should().getReferenceById(letterId);
+    then(userAccountRepository).should().getReferenceById(dto.userAccountDto().username());
+    then(letterRepository).shouldHaveNoMoreInteractions();
+    assertThat(letter.getTitle()).isEqualTo("testTitle");
+    assertThat(letter.getThumbnailUrl()).isEqualTo("testThumbnail");
+  }
+
+  @DisplayName("없는 편지정보를 입력하면, 경고 로그를 찍고 아무것도 하지 않는다")
+  @Test
+  void givenNonexistLetterId_whenUpdatingLetter_thenLogsWarningAndDoesNothing(){
+    // Given
+    LetterDto dto = createLetterDto("testUser");
+
+    given(letterRepository.getReferenceById(dto.id())).willThrow(EntityNotFoundException.class);
+
+    // When
+    sut.updateLetter(dto.id(), dto);
+
+    // Then
+    then(letterRepository).should().getReferenceById(dto.id());
+    then(letterRepository).shouldHaveNoMoreInteractions();
+    then(userAccountRepository).shouldHaveNoInteractions();
+  }
+
+
   Letter createLetter(String username, String title, String thumbnail, Long letterId){
     UserAccount user = createUser(username);
     LetterDto letterDto = createLetterDto(user.getUsername(), title, thumbnail);
@@ -242,14 +284,12 @@ class LetterServiceTest {
     ReflectionTestUtils.setField(letter, "id", letterId);
     return letter;
   }
-
   Letter createLetter(String username, Long letterId) {
     String title = "testTitle";
     String thumbnail = "testThumbnail";
 
     return createLetter(username, title, thumbnail, letterId);
   }
-
 
   LetterDto createLetterDto(String username, String title, String thumbnail, String message) {
     Long letterId = 10L;
@@ -298,7 +338,6 @@ class LetterServiceTest {
     }
     return letterSceneDtoList;
   }
-
   List<LetterSceneDto> createLetterSceneDtoList(Long letterId){
     return createLetterSceneDtoList(letterId, "testContent");
   }
@@ -320,7 +359,6 @@ class LetterServiceTest {
     }
     return messageDtoList;
   }
-
   List<SceneMessageDto> createMessageDtoList(Long sceneId) {
     return createMessageDtoList(sceneId, "testContent");
   }

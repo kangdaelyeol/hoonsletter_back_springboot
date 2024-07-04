@@ -35,11 +35,15 @@ public class UserAccountService {
   }
 
   public void saveUser(UserAccountDto dto){
-    if(userAccountRepository.existsById(dto.username())){
+    if(userAccountRepository.existsById(dto.username().trim())){
       throw new IllegalArgumentException("이미 존재하는 사용자 Id 입니다 - " + dto.username());
     }
 
-    if(userAccountRepository.existsByNickname(dto.nickname())){
+    if(
+        userAccountRepository.existsByNickname(dto.nickname().trim())
+        || userAccountRepository.existsById(dto.nickname().trim())
+    )
+    {
       throw new IllegalArgumentException("이미 존재하는 닉네임 입니다 - " + dto.nickname());
     }
 

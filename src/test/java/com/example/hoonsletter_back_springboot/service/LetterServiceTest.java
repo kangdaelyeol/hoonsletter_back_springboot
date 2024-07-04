@@ -49,12 +49,6 @@ class LetterServiceTest {
   LetterRepository letterRepository;
   @Mock
   UserAccountRepository userAccountRepository;
-  @Mock
-  LetterSceneRepository letterSceneRepository;
-  @Mock
-  SceneMessageRepository sceneMessageRepository;
-  @Mock
-  ScenePictureRepository scenePictureRepository;
 
   @DisplayName("편지 정보를 입력하면 편지를 저장합니다.")
   @Test

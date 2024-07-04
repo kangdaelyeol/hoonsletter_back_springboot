@@ -6,6 +6,7 @@ import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
+@Slf4j
 public class UserAccountService {
   private final UserAccountRepository userAccountRepository;
   private final PasswordEncoder passwordEncoder;
@@ -31,7 +33,6 @@ public class UserAccountService {
         .orElseThrow(() -> new EntityNotFoundException("유저 정보를 찾을 수 없습니다 - " + username));
     return UserAccountWithLettersDto.from(user);
   }
-
 
   public void saveUser(UserAccountDto dto){
     if(userAccountRepository.existsById(dto.username())){
@@ -82,5 +83,13 @@ public class UserAccountService {
     );
 
     UserAccount savedUser = userAccountRepository.save(userAccount);
+  }
+
+  public void deleteUser(String username){
+    try{
+      userAccountRepository.deleteById(username);
+    } catch (IllegalArgumentException e){
+      log.warn("유저 정보가 존재하지 않습니다");
+    }
   }
 }

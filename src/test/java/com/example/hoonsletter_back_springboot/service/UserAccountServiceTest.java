@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willDoNothing;
 
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
@@ -222,6 +224,21 @@ class UserAccountServiceTest {
         .hasMessage("유저 정보를 찾을 수 없습니다 - " + username);
     then(userAccountRepository).should().findById(username);
   }
+
+  @DisplayName("유저의 아이디를 입력하면 유저를 삭제한다")
+  @Test
+  void givenUsername_whenDeletingUserAccount_thenDeletesUserAccount(){
+    // Given
+    String username = "testUsername";
+    willDoNothing().given(userAccountRepository).deleteById(username);
+
+    // When
+    sut.deleteUser(username);
+
+    // Then
+    then(userAccountRepository).should().deleteById(username);
+  }
+
 
   UserAccount createUserAccount() {
     return UserAccount.of(

@@ -90,7 +90,7 @@ class UserAccountServiceTest {
     then(userAccountRepository).should().existsById(dto.username());
     then(passwordEncoder).shouldHaveNoInteractions();
   }
-  
+
   @DisplayName("유저 아이디 사이에 공백이 포함되면 예외를 던진다")
   @Test
   void givenUserAccountInfoWithUsernameContainingSpace_whenSavingUserAccount_thenThrowsException() {

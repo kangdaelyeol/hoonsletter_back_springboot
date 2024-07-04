@@ -130,13 +130,13 @@
 
 ## Table
 - ### name
-  - [**user**](#user)
+  - [**user_account**](#useraccount)
   - [**letter**](#letter)
   - [**letter_scene**](#letterscene)
   - [**scene_message**](#scenemessage)
   - [**scene_picture**](#scenepicture)
 - ### Attributes
-  - ### user
+  - ### user_account
     - **username(PK)** `VARCHAR(255) NOT NULL updateable = false`
       - 유저 아이디
       - 변경할 수 없는 고유의 값입니다.
@@ -145,8 +145,9 @@
     - **password** `VARCHAR(255) NOT NULL`
       - 유저 비밀번호
       - Hash 값이 저장됩니다.
-    - **nickname** `VARCHAR(50) NOT NULL`
+    - **nickname** `VARCHAR(50) NOT NULL UNIQUE`
       - 유저 닉네임
+      - 닉네임은 중복될 수 없습니다.
     - **profile_url** `VARCHAR(255) NOT NULL`
       - 유저 프로필 사진
       - 사진의 주소값이 저정됩니다.

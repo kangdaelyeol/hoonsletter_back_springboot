@@ -29,6 +29,10 @@ public class UserAccountService {
       throw new IllegalArgumentException("이미 존재하는 사용자 Id 입니다 - " + dto.username());
     }
 
+    if(userAccountRepository.existsByNickname(dto.nickname())){
+      throw new IllegalArgumentException("이미 존재하는 닉네임 입니다 - " + dto.nickname());
+    }
+
     if(dto.username().trim().length() < 8){
       throw new IllegalArgumentException("아이디는 최소 8자 이상입니다.");
     }

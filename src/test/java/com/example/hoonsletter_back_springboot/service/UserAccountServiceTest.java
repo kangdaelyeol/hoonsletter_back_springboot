@@ -1,5 +1,6 @@
 package com.example.hoonsletter_back_springboot.service;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,7 +9,11 @@ import static org.mockito.BDDMockito.then;
 
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
+import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
+import jakarta.persistence.EntityNotFoundException;
+import java.util.Optional;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -180,6 +185,52 @@ class UserAccountServiceTest {
     then(userAccountRepository).shouldHaveNoMoreInteractions();
   }
 
+  @DisplayName("유저 정보를 조회하면 편지 정보를 함께 조회한다.")
+  @Test
+  void givenUsername_whenSearchingUserAccount_thenReturnsUserAccountWithLetters() {
+    // Given
+    UserAccount userAccount = createUserAccount();
+    String username = userAccount.getUsername();
+    given(userAccountRepository.findById(username)).willReturn(Optional.of(userAccount));
+
+    // When
+    UserAccountWithLettersDto dto = sut.getUserAccount(username);
+
+    // Then
+    then(userAccountRepository).should().findById(username);
+    assertThat(dto)
+        .hasFieldOrPropertyWithValue("username", userAccount.getUsername())
+        .hasFieldOrPropertyWithValue("password", userAccount.getPassword())
+        .hasFieldOrPropertyWithValue("profileUrl", userAccount.getProfileUrl())
+        .extracting("letterDtos", as(InstanceOfAssertFactories.COLLECTION))
+        .hasSize(0);
+  }
+
+  @DisplayName("존재하지 않는 유저 정보를 조회하면 예외를 던진다")
+  @Test
+  void givenNonExistUsername_whenSearchingUserAccount_thenThrowsException(){
+    // Given
+    String username = "nonExistUsername";
+   given(userAccountRepository.findById(username)).willReturn(Optional.empty());
+
+    // When
+    Throwable t = catchThrowable(() -> sut.getUserAccount(username));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(EntityNotFoundException.class)
+        .hasMessage("유저 정보를 찾을 수 없습니다 - " + username);
+    then(userAccountRepository).should().findById(username);
+  }
+
+  UserAccount createUserAccount() {
+    return UserAccount.of(
+        "testUser",
+        "testPassword",
+        "testNickname",
+        "testProfileUrl"
+    );
+  }
 
   UserAccountDto createUserAccountDto(String username, String password, String nickname, String thumbnail){
     return UserAccountDto.of(
@@ -200,4 +251,5 @@ class UserAccountServiceTest {
   UserAccountDto createUserAccountDto(){
     return createUserAccountDto("testUsername", "testpassword");
   }
+
 }

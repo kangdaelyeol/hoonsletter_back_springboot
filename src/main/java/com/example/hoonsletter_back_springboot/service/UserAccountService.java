@@ -35,11 +35,15 @@ public class UserAccountService {
   }
 
   public void saveUser(UserAccountDto dto){
-    if(userAccountRepository.existsById(dto.username())){
+    if(userAccountRepository.existsById(dto.username().trim())){
       throw new IllegalArgumentException("이미 존재하는 사용자 Id 입니다 - " + dto.username());
     }
 
-    if(userAccountRepository.existsByNickname(dto.nickname())){
+    if(
+        userAccountRepository.existsByNickname(dto.nickname().trim())
+        || userAccountRepository.existsById(dto.nickname().trim())
+    )
+    {
       throw new IllegalArgumentException("이미 존재하는 닉네임 입니다 - " + dto.nickname());
     }
 
@@ -91,5 +95,33 @@ public class UserAccountService {
     } catch (IllegalArgumentException e){
       log.warn("유저 정보가 존재하지 않습니다");
     }
+  }
+
+  public void updateUser(String username, UserAccountDto dto){
+    if(!username.equals(dto.username())) return;
+
+    if(dto.nickname().trim().contains(" ")){
+      throw new IllegalArgumentException("닉네임에 공백이 포함되면 안됩니다.");
+    }
+
+    if(userAccountRepository.existsByNickname(dto.nickname().trim())
+        || (userAccountRepository.existsById(dto.nickname().trim()) && !dto.nickname().trim()
+        .equals(username))){
+      throw new IllegalArgumentException("중복된 닉네임 입니다 - " + dto.nickname().trim());
+    }
+
+    String nickname = dto.nickname().trim().isBlank()
+        ? username
+        : dto.nickname().trim();
+
+    String profileUrl = dto.profileUrl().trim().isBlank()
+        ? "defaultProfileUrl"
+        : dto.profileUrl().trim();
+
+    UserAccount userAccount = userAccountRepository.getReferenceById(username);
+    userAccount.setNickname(nickname);
+    userAccount.setProfileUrl(profileUrl);
+
+    userAccountRepository.flush();
   }
 }

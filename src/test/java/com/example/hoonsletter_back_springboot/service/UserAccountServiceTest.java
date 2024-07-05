@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -64,9 +63,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithShortUsername_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto();
+    UserAccountDto dto = createUserAccountDto("short", "password");
 
-    given(userAccountRepository.existsById(dto.username())).willReturn(false);
+    given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
+    given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
+    given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
 
     // When
     Throwable t = catchThrowable(() -> sut.saveUser(dto));
@@ -76,7 +77,9 @@ class UserAccountServiceTest {
         .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("아이디는 최소 8자 이상입니다.");
     then(passwordEncoder).shouldHaveNoInteractions();
-    then(userAccountRepository).should().existsById(dto.username());
+    then(userAccountRepository).should().existsById(dto.username().trim());
+    then(userAccountRepository).should().existsByNickname(dto.nickname().trim());
+    then(userAccountRepository).should().existsById(dto.nickname().trim());
     then(userAccountRepository).shouldHaveNoMoreInteractions();
   }
 
@@ -103,7 +106,9 @@ class UserAccountServiceTest {
   void givenUserAccountInfoWithUsernameContainingSpace_whenSavingUserAccount_thenThrowsException() {
     // Given
     UserAccountDto dto = createUserAccountDto(" user name ", "password");
-    given(userAccountRepository.existsById(dto.username())).willReturn(false);
+    given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
+    given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
+    given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
     // When
     Throwable t = catchThrowable(() -> sut.saveUser(dto));
 
@@ -111,7 +116,10 @@ class UserAccountServiceTest {
     assertThat(t)
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("아이디에 공백이 포함되면 안됩니다.");
-    then(userAccountRepository).should().existsById(dto.username());
+    then(userAccountRepository).should().existsById(dto.username().trim());
+    then(userAccountRepository).should().existsByNickname(dto.nickname().trim());
+    then(userAccountRepository).should().existsById(dto.nickname().trim());
+    then(userAccountRepository).shouldHaveNoMoreInteractions();
   }
 
   @DisplayName("유저 비밀번호 길이가 작으면 예외를 던진다")
@@ -119,7 +127,9 @@ class UserAccountServiceTest {
   void givenUserAccountInfoWithShortPassword_whenSavingUserAccount_thenThrowsException() {
     // Given
     UserAccountDto dto = createUserAccountDto("testUsername", "short");
-    given(userAccountRepository.existsById(dto.username())).willReturn(false);
+    given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
+    given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
+    given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
 
     // When
     Throwable t = catchThrowable(() -> sut.saveUser(dto));
@@ -128,8 +138,10 @@ class UserAccountServiceTest {
     assertThat(t)
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("비밀번호는 최소 8자 이상입니다.");
-    then(userAccountRepository).should().existsById(dto.username());
+    then(userAccountRepository).should().existsById(dto.username().trim());
     then(passwordEncoder).shouldHaveNoInteractions();
+    then(userAccountRepository).should().existsByNickname(dto.nickname().trim());
+    then(userAccountRepository).should().existsById(dto.nickname().trim());
     then(userAccountRepository).shouldHaveNoMoreInteractions();
   }
 
@@ -239,6 +251,69 @@ class UserAccountServiceTest {
     then(userAccountRepository).should().deleteById(username);
   }
 
+  @DisplayName("유저 정보를 입력하면 유저 정보를 수정한다")
+  @Test
+  void givenUserAccountInfo_whenUpdatingUserAccount_thenUpdatesUserAccount(){
+    // Given
+    String username = "testUser";
+    UserAccount userAccount = createUserAccount(username);
+    UserAccountDto dto = createUserAccountDto(username,
+        "password",
+        "newNickname",
+        "newProfileUrl");
+    given(userAccountRepository.getReferenceById(username)).willReturn(userAccount);
+    given(userAccountRepository.existsByNickname(dto.nickname())).willReturn(false);
+
+    // When
+    sut.updateUser(username, dto);
+
+    // Then
+    then(userAccountRepository).should().flush();
+    then(userAccountRepository).should().getReferenceById(username);
+    then(userAccountRepository).should().existsByNickname(dto.nickname());
+    assertThat(userAccount)
+        .hasFieldOrPropertyWithValue("nickname", "newNickname")
+        .hasFieldOrPropertyWithValue("profileUrl", "newProfileUrl");
+  }
+
+  @DisplayName("중복된 닉네임으로 유저를 수정하면 예외를 던진다")
+  @Test
+  void givenUserAccountInfoWithExistsNickname_whenUpdatingUserAccount_thenThrowsException() {
+    // Given
+    String username = "testUser";
+    UserAccountDto dto = createUserAccountDto(username, "testPassword");
+
+    given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(true);
+
+    // When
+    Throwable t = catchThrowable(() -> sut.updateUser(username, dto));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("중복된 닉네임 입니다 - " + dto.nickname().trim());
+    then(userAccountRepository).should().existsByNickname(dto.nickname().trim());
+    then(userAccountRepository).shouldHaveNoMoreInteractions();
+  }
+
+  @DisplayName("공백이 포함된 닉네임으로 수정시 예외를 던진다")
+  @Test
+  void givenUserAccountInfoWithNicknameContainsBlank_whenSavingUserAccount_thenThrowsException() {
+    // Given
+    String username = "testUser";
+    String nickname = "b lank nickname";
+    UserAccountDto dto = createUserAccountDto(username, "password", nickname, "profile");
+
+    // When
+    Throwable t = catchThrowable(() -> sut.updateUser(username, dto));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("닉네임에 공백이 포함되면 안됩니다.");
+
+    then(userAccountRepository).shouldHaveNoInteractions();
+  }
 
   UserAccount createUserAccount() {
     return UserAccount.of(
@@ -249,12 +324,12 @@ class UserAccountServiceTest {
     );
   }
 
-  UserAccountDto createUserAccountDto(String username, String password, String nickname, String thumbnail){
+  UserAccountDto createUserAccountDto(String username, String password, String nickname, String profileUrl){
     return UserAccountDto.of(
         username,
         password,
         nickname,
-        thumbnail
+        profileUrl
     );
   }
   UserAccountDto createUserAccountDto(String username, String password){
@@ -262,11 +337,20 @@ class UserAccountServiceTest {
         username,
         password,
         "testNickname",
-        "testThumbnail"
+        "testProfileUrl"
     );
   }
-  UserAccountDto createUserAccountDto(){
-    return createUserAccountDto("testUsername", "testpassword");
+
+  UserAccount createUserAccount(String username){
+    return UserAccount.of(
+        username,
+        "password",
+        "nickname",
+        "profile"
+    );
   }
 
+  UserAccountDto createUserAccountDto(){
+    return createUserAccountDto("testUsername", "testPassword");
+  }
 }

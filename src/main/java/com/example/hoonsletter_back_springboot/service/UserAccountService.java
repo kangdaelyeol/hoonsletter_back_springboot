@@ -4,6 +4,7 @@ package com.example.hoonsletter_back_springboot.service;
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
+import com.example.hoonsletter_back_springboot.dto.request.ChangePasswordRequest;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -121,6 +122,30 @@ public class UserAccountService {
     UserAccount userAccount = userAccountRepository.getReferenceById(username);
     userAccount.setNickname(nickname);
     userAccount.setProfileUrl(profileUrl);
+
+    userAccountRepository.flush();
+  }
+
+  public void changePassword(String username, ChangePasswordRequest dto){
+    UserAccount userAccount = userAccountRepository.getReferenceById(username);
+
+    if(dto.currentPassword().contains(" ") || dto.newPassword().contains(" ") || dto.confirmPassword().contains(" ")){
+      throw new IllegalArgumentException("패스워드에 공백이 포함되면 안됩니다!");
+    }
+
+    if(dto.newPassword().length() < 8){
+      throw new IllegalArgumentException("패스워드는 최소 8자 이상입니다!");
+    }
+
+    if(!dto.newPassword().equals(dto.confirmPassword())){
+      throw new IllegalArgumentException("패스워드 확인이 일치하지 않습니다!");
+    }
+
+    if(!passwordEncoder.matches(dto.currentPassword(), userAccount.getPassword())){
+      throw new IllegalArgumentException("기존 패스워드가 일치하지 않습니다!");
+    }
+
+    userAccount.setPassword(passwordEncoder.encode(dto.newPassword()));
 
     userAccountRepository.flush();
   }

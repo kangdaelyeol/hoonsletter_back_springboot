@@ -283,6 +283,25 @@ class UserAccountServiceTest {
     then(userAccountRepository).shouldHaveNoMoreInteractions();
   }
 
+  @DisplayName("공백이 포함된 닉네임으로 수정시 예외를 던진다")
+  @Test
+  void givenUserAccountInfoWithNicknameContainsBlank_whenSavingUserAccount_thenThrowsException() {
+    // Given
+    String username = "testUser";
+    String nickname = "b lank nickname";
+    UserAccountDto dto = createUserAccountDto(username, "password", nickname, "profile");
+
+    // When
+    Throwable t = catchThrowable(() -> sut.updateUser(username, dto));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("닉네임에 공백이 포함되면 안됩니다.");
+
+    then(userAccountRepository).shouldHaveNoInteractions();
+  }
+
   UserAccount createUserAccount() {
     return UserAccount.of(
         "testUser",

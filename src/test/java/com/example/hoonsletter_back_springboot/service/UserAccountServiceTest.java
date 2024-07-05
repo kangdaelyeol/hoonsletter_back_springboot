@@ -442,6 +442,31 @@ class UserAccountServiceTest {
     then(passwordEncoder).shouldHaveNoMoreInteractions();
   }
 
+  @DisplayName("기존 비밀번호와 같은 비밀번호로 변경하면 예외를 던진다")
+  @Test
+  void givenSameChangePasswordInfo_whenChangingPassword_thenThrowsException() {
+    // Given
+    UserAccount userAccount = createUserAccount();
+    ChangePasswordRequest request = ChangePasswordRequest.of(
+        "samePassword",
+        "samePassword",
+        "samePassword"
+    );
+    given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
+    given(passwordEncoder.matches(request.currentPassword(), userAccount.getPassword())).willReturn(true);
+
+    // When
+    Throwable t = catchThrowable(() -> sut.changePassword(userAccount.getUsername(), request));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("기존의 비밀번호와 같은 비밀번호로 변경할 수 없습니다!");
+    then(userAccountRepository).should().getReferenceById(userAccount.getUsername());
+    then(passwordEncoder).should().matches(request.currentPassword(), userAccount.getPassword());
+    then(userAccountRepository).shouldHaveNoMoreInteractions();
+  }
+
   UserAccount createUserAccount() {
     return UserAccount.of(
         "testUser",

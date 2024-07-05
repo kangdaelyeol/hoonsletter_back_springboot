@@ -145,6 +145,10 @@ public class UserAccountService {
       throw new IllegalArgumentException("기존 패스워드가 일치하지 않습니다!");
     }
 
+    if(dto.currentPassword().equals(dto.newPassword())){
+      throw new IllegalArgumentException("기존의 비밀번호와 같은 비밀번호로 변경할 수 없습니다!");
+    }
+
     userAccount.setPassword(passwordEncoder.encode(dto.newPassword()));
 
     userAccountRepository.flush();

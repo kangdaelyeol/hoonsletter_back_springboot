@@ -63,9 +63,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithShortUsername_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto();
+    UserAccountDto dto = createUserAccountDto("short", "password");
 
-    given(userAccountRepository.existsById(dto.username())).willReturn(false);
+    given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
+    given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
+    given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
 
     // When
     Throwable t = catchThrowable(() -> sut.saveUser(dto));
@@ -75,7 +77,9 @@ class UserAccountServiceTest {
         .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("아이디는 최소 8자 이상입니다.");
     then(passwordEncoder).shouldHaveNoInteractions();
-    then(userAccountRepository).should().existsById(dto.username());
+    then(userAccountRepository).should().existsById(dto.username().trim());
+    then(userAccountRepository).should().existsByNickname(dto.nickname().trim());
+    then(userAccountRepository).should().existsById(dto.nickname().trim());
     then(userAccountRepository).shouldHaveNoMoreInteractions();
   }
 
@@ -102,7 +106,9 @@ class UserAccountServiceTest {
   void givenUserAccountInfoWithUsernameContainingSpace_whenSavingUserAccount_thenThrowsException() {
     // Given
     UserAccountDto dto = createUserAccountDto(" user name ", "password");
-    given(userAccountRepository.existsById(dto.username())).willReturn(false);
+    given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
+    given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
+    given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
     // When
     Throwable t = catchThrowable(() -> sut.saveUser(dto));
 
@@ -110,7 +116,10 @@ class UserAccountServiceTest {
     assertThat(t)
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("아이디에 공백이 포함되면 안됩니다.");
-    then(userAccountRepository).should().existsById(dto.username());
+    then(userAccountRepository).should().existsById(dto.username().trim());
+    then(userAccountRepository).should().existsByNickname(dto.nickname().trim());
+    then(userAccountRepository).should().existsById(dto.nickname().trim());
+    then(userAccountRepository).shouldHaveNoMoreInteractions();
   }
 
   @DisplayName("유저 비밀번호 길이가 작으면 예외를 던진다")
@@ -118,7 +127,9 @@ class UserAccountServiceTest {
   void givenUserAccountInfoWithShortPassword_whenSavingUserAccount_thenThrowsException() {
     // Given
     UserAccountDto dto = createUserAccountDto("testUsername", "short");
-    given(userAccountRepository.existsById(dto.username())).willReturn(false);
+    given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
+    given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
+    given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
 
     // When
     Throwable t = catchThrowable(() -> sut.saveUser(dto));
@@ -127,8 +138,10 @@ class UserAccountServiceTest {
     assertThat(t)
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("비밀번호는 최소 8자 이상입니다.");
-    then(userAccountRepository).should().existsById(dto.username());
+    then(userAccountRepository).should().existsById(dto.username().trim());
     then(passwordEncoder).shouldHaveNoInteractions();
+    then(userAccountRepository).should().existsByNickname(dto.nickname().trim());
+    then(userAccountRepository).should().existsById(dto.nickname().trim());
     then(userAccountRepository).shouldHaveNoMoreInteractions();
   }
 

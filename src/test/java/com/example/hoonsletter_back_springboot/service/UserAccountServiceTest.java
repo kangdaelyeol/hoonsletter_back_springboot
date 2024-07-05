@@ -11,13 +11,18 @@ import static org.mockito.BDDMockito.willDoNothing;
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
+import com.example.hoonsletter_back_springboot.dto.request.ChangePasswordRequest;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -315,10 +320,157 @@ class UserAccountServiceTest {
     then(userAccountRepository).shouldHaveNoInteractions();
   }
 
+  @DisplayName("비밀번호 변경 정보를 입력하면 비밀번호를 수정한다.")
+  @Test
+  void givenChangePasswordInfo_whenChangingPassword_thenChangesPassword() {
+    // Given
+    UserAccount userAccount = createUserAccount("testUser");
+    String currentPassword = "testPassword";
+    String currentEncodedPassword = userAccount.getPassword();
+    String newPassword = "newPassword";
+    String newEncodedPassword = "newEncodedPassword";
+    ChangePasswordRequest request = ChangePasswordRequest.of(
+        currentPassword,
+        newPassword,
+        newPassword
+    );
+    given(passwordEncoder.matches(request.currentPassword(), userAccount.getPassword())).willReturn(true);
+    given(passwordEncoder.encode(request.newPassword())).willReturn(newEncodedPassword);
+    given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
+
+    // When
+    sut.changePassword(userAccount.getUsername(), request);
+
+    // Then
+    assertThat(userAccount)
+        .hasFieldOrPropertyWithValue("password", newEncodedPassword);
+    then(passwordEncoder).should().matches(request.currentPassword(), currentEncodedPassword);
+    then(passwordEncoder).should().encode(request.newPassword());
+    then(userAccountRepository).should().flush();
+  }
+
+  static Stream<Arguments> givenChangePasswordInfoContainingSpace_whenChangingPassword_thenThrowsException() {
+    return Stream.of(
+        Arguments.arguments("c urrentpassword", "newpassword", "newpassword"),
+        Arguments.arguments("currentpassword", "n ewpassword", "newpassword"),
+        Arguments.arguments("currentpassword", "newpassword", "n ewpassword"),
+        Arguments.arguments("currentpassword", "newpassword", "newpassword "),
+        Arguments.arguments("currentpassword", " newpassword", "newpassword"),
+        Arguments.arguments(" currentpassword", "newpassword", "newpassword"),
+        Arguments.arguments("curr entpas sword", "newpa ssword", "ne wpasswor d")
+    );
+  }
+
+  @DisplayName("비밀번호 입력 정보에 공백이 포함되면 예외를 던진다")
+  @MethodSource
+  @ParameterizedTest(name = "[test - {index}] currentPassword = {0}, newPassword = {1}, confirmPassword = {2}")
+  void givenChangePasswordInfoContainingSpace_whenChangingPassword_thenThrowsException(
+      String currentPassword,
+      String newPassword,
+      String confirmPassword
+  ) {
+    // Given
+    UserAccount userAccount = createUserAccount();
+    ChangePasswordRequest request = ChangePasswordRequest.of(
+        currentPassword,
+        newPassword,
+        confirmPassword
+    );
+    given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
+
+    // When
+    Throwable t = catchThrowable(() -> sut.changePassword(userAccount.getUsername(), request));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("패스워드에 공백이 포함되면 안됩니다!");
+    then(userAccountRepository).should().getReferenceById(userAccount.getUsername());
+    then(userAccountRepository).shouldHaveNoMoreInteractions();
+    then(passwordEncoder).shouldHaveNoInteractions();
+  }
+
+  @DisplayName("새로운 패스워드와 패스워드확인이 다르면 예외를 던진다")
+  @Test
+  void givenDifferentChangePasswordInfo_whenChangingPassword_thenThrowsException() {
+    // Given
+    UserAccount userAccount = createUserAccount();
+    ChangePasswordRequest request = ChangePasswordRequest.of(
+        "password",
+        "newPassword",
+        "diffPassword"
+    );
+    given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
+
+    // When
+    Throwable t = catchThrowable(() -> sut.changePassword(userAccount.getUsername(), request));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("패스워드 확인이 일치하지 않습니다!");
+    then(userAccountRepository).should().getReferenceById(userAccount.getUsername());
+    then(userAccountRepository).shouldHaveNoMoreInteractions();
+  }
+
+  @DisplayName("현재 패스워드의 입력이 일치하지 않으면 예외를 던진다")
+  @Test
+  void givenDifferentCurrentPasswordInfo_whenChangingPassword_thenThrowsException() {
+    // Given
+    UserAccount userAccount = createUserAccount();
+    String diffPassword = "diffPassword";
+    ChangePasswordRequest request = ChangePasswordRequest.of(
+        diffPassword,
+        "newPassword",
+        "newPassword"
+    );
+
+    given(passwordEncoder.matches(diffPassword, userAccount.getPassword())).willReturn(false);
+    given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
+
+    // When
+    Throwable t = catchThrowable(() -> sut.changePassword(userAccount.getUsername(), request));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("기존 패스워드가 일치하지 않습니다!");
+
+    then(userAccountRepository).should().getReferenceById(userAccount.getUsername());
+    then(passwordEncoder).should().matches(diffPassword, userAccount.getPassword());
+    then(userAccountRepository).shouldHaveNoMoreInteractions();
+    then(passwordEncoder).shouldHaveNoMoreInteractions();
+  }
+
+  @DisplayName("기존 비밀번호와 같은 비밀번호로 변경하면 예외를 던진다")
+  @Test
+  void givenSameChangePasswordInfo_whenChangingPassword_thenThrowsException() {
+    // Given
+    UserAccount userAccount = createUserAccount();
+    ChangePasswordRequest request = ChangePasswordRequest.of(
+        "samePassword",
+        "samePassword",
+        "samePassword"
+    );
+    given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
+    given(passwordEncoder.matches(request.currentPassword(), userAccount.getPassword())).willReturn(true);
+
+    // When
+    Throwable t = catchThrowable(() -> sut.changePassword(userAccount.getUsername(), request));
+
+    // Then
+    assertThat(t)
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("기존의 비밀번호와 같은 비밀번호로 변경할 수 없습니다!");
+    then(userAccountRepository).should().getReferenceById(userAccount.getUsername());
+    then(passwordEncoder).should().matches(request.currentPassword(), userAccount.getPassword());
+    then(userAccountRepository).shouldHaveNoMoreInteractions();
+  }
+
   UserAccount createUserAccount() {
     return UserAccount.of(
         "testUser",
-        "testPassword",
+        "encodedPassword",
         "testNickname",
         "testProfileUrl"
     );

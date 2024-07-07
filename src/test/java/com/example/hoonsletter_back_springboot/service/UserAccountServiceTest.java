@@ -273,7 +273,6 @@ class UserAccountServiceTest {
     sut.updateUser(username, dto);
 
     // Then
-    then(userAccountRepository).should().flush();
     then(userAccountRepository).should().getReferenceById(username);
     then(userAccountRepository).should().existsByNickname(dto.nickname());
     assertThat(userAccount)
@@ -346,7 +345,6 @@ class UserAccountServiceTest {
         .hasFieldOrPropertyWithValue("password", newEncodedPassword);
     then(passwordEncoder).should().matches(request.currentPassword(), currentEncodedPassword);
     then(passwordEncoder).should().encode(request.newPassword());
-    then(userAccountRepository).should().flush();
   }
 
   static Stream<Arguments> givenChangePasswordInfoContainingSpace_whenChangingPassword_thenThrowsException() {

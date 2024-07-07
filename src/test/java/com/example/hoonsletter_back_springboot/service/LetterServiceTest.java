@@ -1,6 +1,8 @@
 package com.example.hoonsletter_back_springboot.service;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.as;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -18,9 +20,6 @@ import com.example.hoonsletter_back_springboot.dto.SceneMessageDto;
 import com.example.hoonsletter_back_springboot.dto.ScenePictureDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.repository.LetterRepository;
-import com.example.hoonsletter_back_springboot.repository.LetterSceneRepository;
-import com.example.hoonsletter_back_springboot.repository.SceneMessageRepository;
-import com.example.hoonsletter_back_springboot.repository.ScenePictureRepository;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
@@ -152,14 +151,12 @@ class LetterServiceTest {
     Long letterId = 1L;
     String username = "test1";
     willDoNothing().given(letterRepository).deleteByIdAndUserAccount_Username(letterId, username);
-    willDoNothing().given(letterRepository).flush();
 
     // When
     sut.deleteLetter(letterId, username);
 
     // Then
     then(letterRepository).should().deleteByIdAndUserAccount_Username(letterId, username);
-    then(letterRepository).should().flush();
   }
 
   @DisplayName("편지의 수정 정보를 입력하면, 편지를 수정한다")
@@ -177,7 +174,6 @@ class LetterServiceTest {
     sut.updateLetter(letter.getId(), dto);
 
     // Then
-    then(letterRepository).should().flush();
     then(letterRepository).should().getReferenceById(dto.id());
     then(userAccountRepository).should().getReferenceById(username);
     assertThat(letter)

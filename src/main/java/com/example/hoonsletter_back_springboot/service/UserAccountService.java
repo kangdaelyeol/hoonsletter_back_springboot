@@ -122,8 +122,6 @@ public class UserAccountService {
     UserAccount userAccount = userAccountRepository.getReferenceById(username);
     userAccount.setNickname(nickname);
     userAccount.setProfileUrl(profileUrl);
-
-    userAccountRepository.flush();
   }
 
   public void changePassword(String username, ChangePasswordRequest dto){
@@ -150,7 +148,5 @@ public class UserAccountService {
     }
 
     userAccount.setPassword(passwordEncoder.encode(dto.newPassword()));
-
-    userAccountRepository.flush();
   }
 }

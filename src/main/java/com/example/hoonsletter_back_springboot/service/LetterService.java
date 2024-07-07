@@ -59,7 +59,6 @@ public class LetterService {
 
   public void deleteLetter(Long letterId, String username) {
     letterRepository.deleteByIdAndUserAccount_Username(letterId, username);
-    letterRepository.flush();
   }
 
   @Transactional(readOnly = true)
@@ -102,7 +101,7 @@ public class LetterService {
 
       letter.getLetterScenes().clear();
       letter.setLetterScenes(letterScenes);
-      letterRepository.flush();
+
 
     } catch (EntityNotFoundException e){
       log.warn("게시글 업데이트 실패. 업데이트에 필요한 정보를 찾을 수 없습니다 - ", e.getLocalizedMessage());

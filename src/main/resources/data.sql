@@ -1,7 +1,7 @@
-INSERT INTO user_account (username, password, nickname, profile_url) values ('test1', '1234', 'testuser1', 'testurl'),
-                                                                            ('test2', '1234', 'testuser2', 'testurl'),
-                                                                            ('test3', '1234', 'testuser3', 'testurl'),
-                                                                            ('test4', '1234', 'testuser4', 'testurl');
+INSERT INTO user_account (username, password, nickname, profile_url) values ('test1', '{noop}1234', 'testuser1', 'testurl'),
+                                                                            ('test2', '{noop}1234', 'testuser2', 'testurl'),
+                                                                            ('test3', '{noop}1234', 'testuser3', 'testurl'),
+                                                                            ('test4', '{noop}1234', 'testuser4', 'testurl');
 
 INSERT INTO letter (id, title, type, thumbnail_url, created_at, updatable, user_id) values (1, 'letter1', 'TYPE1', 'thumb1', '2023-10-01 11:10:29', true, 'test1'),
                                                                                            (2, 'letter2', 'TYPE2', 'thumb2', '2023-10-02 11:10:29', true, 'test2'),

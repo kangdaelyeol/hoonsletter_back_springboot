@@ -2,13 +2,19 @@ package com.example.hoonsletter_back_springboot.service;
 
 
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
+import com.example.hoonsletter_back_springboot.dto.JwtToken;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.dto.request.ChangePasswordRequest;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +25,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserAccountService {
   private final UserAccountRepository userAccountRepository;
   private final PasswordEncoder passwordEncoder;
+  private final JwtTokenProvider jwtTokenProvider;
+  private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
   @Autowired
   UserAccountService(UserAccountRepository userAccountRepository,
-      PasswordEncoder passwordEncoder
+      PasswordEncoder passwordEncoder,
+      JwtTokenProvider jwtTokenProvider,
+      AuthenticationManagerBuilder authenticationManagerBuilder
       ){
     this.userAccountRepository = userAccountRepository;
     this.passwordEncoder = passwordEncoder;
+    this.jwtTokenProvider = jwtTokenProvider;
+    this.authenticationManagerBuilder = authenticationManagerBuilder;
   }
 
   @Transactional(readOnly = true)
@@ -79,6 +91,7 @@ public class UserAccountService {
       profileUrl = "defaultProfileUrl";
     else
       profileUrl = dto.profileUrl();
+
 
     UserAccount userAccount = UserAccount.of(
         dto.username(),
@@ -148,5 +161,18 @@ public class UserAccountService {
     }
 
     userAccount.setPassword(passwordEncoder.encode(dto.newPassword()));
+  }
+
+  public JwtToken signInUser(String username, String password) {
+    // 1. Login ID/PW 를 기반으로 Authentication 객체 생성
+    // 이 때 authentication은 인증 여부를 확인하는 authenticated 값이 false
+    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+
+    // 2. 실제 검증(사용자 비밀번호 체크)이 이루어지는 부분
+    // authenticate 메서드가 실행될 때 CustomUserDetailsService에서 만든 loadUserByUsername 메서드가 실행
+    Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+    // 3. 인증 정보를 기반으로 JWT 토큰 생성
+    return jwtTokenProvider.generateToken(authentication);
   }
 }

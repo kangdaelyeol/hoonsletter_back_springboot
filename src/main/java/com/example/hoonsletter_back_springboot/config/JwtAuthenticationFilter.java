@@ -6,23 +6,24 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
-import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends GenericFilterBean {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+  public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
     // Request Header에서 JWT Token 추출
-    String token = resolveToken((HttpServletRequest) request);
+    String token = resolveToken(request);
 
     // validateToken으로 Token 유효성 검사
     if(token != null && jwtTokenProvider.validateToken(token)){
@@ -32,6 +33,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     chain.doFilter(request, response);
   }
+
 
   // Request Header에서 토큰 정보 추출
   private String resolveToken(HttpServletRequest request){

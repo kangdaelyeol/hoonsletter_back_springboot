@@ -8,8 +8,6 @@ import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.dto.request.ChangePasswordRequest;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

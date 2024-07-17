@@ -1,6 +1,5 @@
 package com.example.hoonsletter_back_springboot.config;
 
-import com.example.hoonsletter_back_springboot.service.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +28,7 @@ public class SecurityConfig {
     return httpSecurity
         .httpBasic(AbstractHttpConfigurer::disable) // (customizer -> customizer.disable()) (same)
         .csrf(AbstractHttpConfigurer::disable)
+        .formLogin(AbstractHttpConfigurer::disable)
         .sessionManagement((customizer) ->
           customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )

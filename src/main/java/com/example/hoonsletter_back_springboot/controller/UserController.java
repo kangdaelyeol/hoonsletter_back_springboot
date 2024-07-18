@@ -3,10 +3,10 @@ package com.example.hoonsletter_back_springboot.controller;
 
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
-import com.example.hoonsletter_back_springboot.dto.request.GetUserRequest;
 import com.example.hoonsletter_back_springboot.dto.request.SignUpRequest;
-import com.example.hoonsletter_back_springboot.dto.response.SignUpResponse;
+import com.example.hoonsletter_back_springboot.dto.request.UsernameRequest;
 import com.example.hoonsletter_back_springboot.dto.response.GetUserResponse;
+import com.example.hoonsletter_back_springboot.dto.response.SignUpResponse;
 import com.example.hoonsletter_back_springboot.service.UserAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -34,8 +34,15 @@ public class UserController {
   }
 
   @PostMapping("/get")
-  public ResponseEntity<GetUserResponse> getUser(@RequestBody GetUserRequest request) {
+  public ResponseEntity<GetUserResponse> getUser(@RequestBody UsernameRequest request) {
     UserAccountWithLettersDto dto = userAccountService.getUserAccountWithLetter(request.username());
     return ResponseEntity.ok(GetUserResponse.from(dto));
   }
+
+  @PostMapping("/delete")
+  public boolean deleteUser(@RequestBody UsernameRequest request) {
+    userAccountService.deleteUser();
+    return true;
+  }
+
 }

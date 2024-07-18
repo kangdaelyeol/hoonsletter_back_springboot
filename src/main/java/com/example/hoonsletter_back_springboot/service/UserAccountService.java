@@ -9,6 +9,7 @@ import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.dto.request.ChangePasswordRequest;
 import com.example.hoonsletter_back_springboot.dto.request.SignUpRequest;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
+import com.example.hoonsletter_back_springboot.util.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,7 +119,8 @@ public class UserAccountService {
     return UserAccountDto.from(savedUser);
   }
 
-  public void deleteUser(String username){
+  public void deleteUser(){
+    String username = SecurityUtil.getCurrentUsername();
     try{
       userAccountRepository.deleteById(username);
     } catch (IllegalArgumentException e){
@@ -126,7 +128,8 @@ public class UserAccountService {
     }
   }
 
-  public void updateUser(String username, UserAccountDto dto){
+  public void updateUser(UserAccountDto dto){
+    String username = SecurityUtil.getCurrentUsername();
     if(!username.equals(dto.username())) return;
 
     if(dto.nickname().trim().contains(" ")){
@@ -152,7 +155,8 @@ public class UserAccountService {
     userAccount.setProfileUrl(profileUrl);
   }
 
-  public void changePassword(String username, ChangePasswordRequest dto){
+  public void changePassword(ChangePasswordRequest dto){
+    String username = SecurityUtil.getCurrentUsername();
     UserAccount userAccount = userAccountRepository.getReferenceById(username);
 
     if(dto.currentPassword().contains(" ") || dto.newPassword().contains(" ") || dto.confirmPassword().contains(" ")){

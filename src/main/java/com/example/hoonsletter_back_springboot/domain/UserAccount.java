@@ -83,7 +83,7 @@ public class UserAccount implements UserDetails {
   }
 
   @ElementCollection(fetch = FetchType.EAGER)
-  @CollectionTable(name = "user_authority", joinColumns = @JoinColumn(name = "username"))
+  @CollectionTable(name = "user_authority", joinColumns = @JoinColumn(name = "user_username"))
   @Column(name = "authority")
   @Enumerated(EnumType.STRING)
   private List<RoleType> authorities = new ArrayList<>();

@@ -13,3 +13,8 @@ INSERT INTO letter_scene (id, part_order, letter_id) values (1, 1, 1), (2, 2, 1)
                                                             (8, 1 ,3),
                                                             (9, 1, 4),
                                                             (10, 1, 5), (11, 2, 5);
+
+INSERT INTO user_authority (user_username, authority) values ('test1', 'ROLE_USER'),
+                                                             ('test2', 'ROLE_USER'),
+                                                             ('test3', 'ROLE_USER'),
+                                                             ('test4', 'ROLE_USER');

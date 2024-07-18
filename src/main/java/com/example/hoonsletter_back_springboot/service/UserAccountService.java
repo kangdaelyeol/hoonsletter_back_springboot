@@ -6,6 +6,7 @@ import com.example.hoonsletter_back_springboot.dto.JwtToken;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.dto.request.ChangePasswordRequest;
+import com.example.hoonsletter_back_springboot.dto.request.SignUpRequest;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,12 @@ public class UserAccountService {
     return UserAccountWithLettersDto.from(user);
   }
 
-  public void saveUser(UserAccountDto dto){
+  public UserAccountDto saveUser(SignUpRequest dto){
+
+    if(!dto.password().equals(dto.confirmPassword())){
+      throw new IllegalArgumentException("비밀번호가 일치하지 않습니다!");
+    }
+
     if(userAccountRepository.existsById(dto.username().trim())){
       throw new IllegalArgumentException("이미 존재하는 사용자 Id 입니다 - " + dto.username());
     }

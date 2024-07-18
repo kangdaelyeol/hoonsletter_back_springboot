@@ -12,6 +12,8 @@ import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.dto.request.ChangePasswordRequest;
+import com.example.hoonsletter_back_springboot.dto.request.SignInRequest;
+import com.example.hoonsletter_back_springboot.dto.request.SignUpRequest;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
@@ -47,12 +49,16 @@ class UserAccountServiceTest {
   void givenUserAccountInfo_whenSavingUserAccount_thenSavesUserAccount() {
     // Given
     String encodedPw = "abcd1234abcd1234asdf";
-    UserAccountDto dto = createUserAccountDto();
+    SignUpRequest dto = SignUpRequest.of("testUsername",
+        "password",
+        "password",
+        "testNickname",
+        "testProfileUrl");
     UserAccount userAccount = UserAccount.of(
         "testUsername",
         encodedPw,
         "testNickname",
-        "testThumbnail"
+        "testProfileUrl"
     );
     given(passwordEncoder.encode(dto.password())).willReturn(encodedPw);
     given(userAccountRepository.save(any(UserAccount.class))).willReturn(userAccount);
@@ -68,7 +74,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithShortUsername_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto("short", "password");
+    SignUpRequest dto = SignUpRequest.of("short",
+        "password",
+        "password",
+        "nickname",
+        "profileUrl");
 
     given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
     given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
@@ -92,7 +102,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithExistsUsername_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto();
+    SignUpRequest dto = SignUpRequest.of("username",
+        "password",
+        "password",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username())).willReturn(true);
 
     // When
@@ -110,7 +124,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithUsernameContainingSpace_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto(" user name ", "password");
+    SignUpRequest dto = SignUpRequest.of("user name",
+        "password",
+        "password",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
     given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
     given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
@@ -131,7 +149,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithShortPassword_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto("testUsername", "short");
+    SignUpRequest dto = SignUpRequest.of("username",
+        "short",
+        "short",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
     given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
     given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
@@ -154,7 +176,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithPasswordContainingSpace_whenSavingUserAccount_thenThrowsException(){
     // Given
-    UserAccountDto dto = createUserAccountDto("username", "pass word");
+    SignUpRequest dto = SignUpRequest.of("username",
+        "pass word",
+        "pass word",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username())).willReturn(false);
 
     // When
@@ -171,7 +197,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithNicknameContainingSpace_whenSavingUserAccount_thenThrowsException(){
     // Given
-    UserAccountDto dto = createUserAccountDto("username", "password", "nick   name", "thumbnail");
+    SignUpRequest dto = SignUpRequest.of("username",
+        "password",
+        "password",
+        "nick name",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username())).willReturn(false);
 
     // When
@@ -188,7 +218,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithExistsNickname_whenSavingUserAccount_thenThrowsException(){
     // Given
-    UserAccountDto dto = createUserAccountDto();
+    SignUpRequest dto = SignUpRequest.of("username",
+        "password",
+        "password",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username())).willReturn(false);
     given(userAccountRepository.existsByNickname(dto.nickname())).willReturn(true);
 
@@ -213,7 +247,7 @@ class UserAccountServiceTest {
     given(userAccountRepository.findById(username)).willReturn(Optional.of(userAccount));
 
     // When
-    UserAccountWithLettersDto dto = sut.getUserAccount(username);
+    UserAccountWithLettersDto dto = sut.getUserAccountWithLetter(username);
 
     // Then
     then(userAccountRepository).should().findById(username);
@@ -233,7 +267,7 @@ class UserAccountServiceTest {
    given(userAccountRepository.findById(username)).willReturn(Optional.empty());
 
     // When
-    Throwable t = catchThrowable(() -> sut.getUserAccount(username));
+    Throwable t = catchThrowable(() -> sut.getUserAccountWithLetter(username));
 
     // Then
     assertThat(t)

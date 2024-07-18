@@ -1,6 +1,5 @@
 package com.example.hoonsletter_back_springboot.config;
 
-import com.example.hoonsletter_back_springboot.service.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

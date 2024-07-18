@@ -1,6 +1,7 @@
 package com.example.hoonsletter_back_springboot.service;
 
 
+import com.example.hoonsletter_back_springboot.config.JwtTokenProvider;
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.dto.JwtToken;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
@@ -40,7 +41,15 @@ public class UserAccountService {
   }
 
   @Transactional(readOnly = true)
-  public UserAccountWithLettersDto getUserAccount(String username) {
+  public UserAccountDto getUserAccount(String username) {
+    UserAccount user = userAccountRepository.findById(username)
+        .orElseThrow(() -> new EntityNotFoundException("유저 정보를 찾을 수 없습니다 - " + username));
+
+    return UserAccountDto.from(user);
+  }
+
+  @Transactional(readOnly = true)
+  public UserAccountWithLettersDto getUserAccountWithLetter(String username) {
     UserAccount user = userAccountRepository.findById(username)
         .orElseThrow(() -> new EntityNotFoundException("유저 정보를 찾을 수 없습니다 - " + username));
     return UserAccountWithLettersDto.from(user);
@@ -105,6 +114,8 @@ public class UserAccountService {
     );
 
     UserAccount savedUser = userAccountRepository.save(userAccount);
+
+    return UserAccountDto.from(savedUser);
   }
 
   public void deleteUser(String username){

@@ -4,6 +4,7 @@ package com.example.hoonsletter_back_springboot.controller;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.dto.request.SignUpRequest;
+import com.example.hoonsletter_back_springboot.dto.request.UserUpdateRequest;
 import com.example.hoonsletter_back_springboot.dto.request.UsernameRequest;
 import com.example.hoonsletter_back_springboot.dto.response.GetUserResponse;
 import com.example.hoonsletter_back_springboot.dto.response.SignUpResponse;
@@ -40,9 +41,14 @@ public class UserController {
   }
 
   @PostMapping("/delete")
-  public boolean deleteUser(@RequestBody UsernameRequest request) {
+  public ResponseEntity<Void> deleteUser(@RequestBody UsernameRequest request) {
     userAccountService.deleteUser();
-    return true;
+    return ResponseEntity.status(200).build();
   }
 
+  @PostMapping("/update")
+  public ResponseEntity<Void> updateUser(@RequestBody UserUpdateRequest request){
+    userAccountService.updateUser(request.toDto());
+    return ResponseEntity.status(200).build();
+  }
 }

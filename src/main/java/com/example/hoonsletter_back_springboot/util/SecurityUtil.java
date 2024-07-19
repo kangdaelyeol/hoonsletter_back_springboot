@@ -1,6 +1,5 @@
 package com.example.hoonsletter_back_springboot.util;
 
-import java.util.Date;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

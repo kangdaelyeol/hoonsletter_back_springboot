@@ -1,15 +1,16 @@
 package com.example.hoonsletter_back_springboot.service;
 
 
+import com.example.hoonsletter_back_springboot.config.JwtTokenProvider;
 import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.dto.JwtToken;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.dto.request.ChangePasswordRequest;
+import com.example.hoonsletter_back_springboot.dto.request.SignUpRequest;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
+import com.example.hoonsletter_back_springboot.util.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,13 +42,26 @@ public class UserAccountService {
   }
 
   @Transactional(readOnly = true)
-  public UserAccountWithLettersDto getUserAccount(String username) {
+  public UserAccountDto getUserAccount(String username) {
+    UserAccount user = userAccountRepository.findById(username)
+        .orElseThrow(() -> new EntityNotFoundException("유저 정보를 찾을 수 없습니다 - " + username));
+
+    return UserAccountDto.from(user);
+  }
+
+  @Transactional(readOnly = true)
+  public UserAccountWithLettersDto getUserAccountWithLetter(String username) {
     UserAccount user = userAccountRepository.findById(username)
         .orElseThrow(() -> new EntityNotFoundException("유저 정보를 찾을 수 없습니다 - " + username));
     return UserAccountWithLettersDto.from(user);
   }
 
-  public void saveUser(UserAccountDto dto){
+  public UserAccountDto saveUser(SignUpRequest dto){
+
+    if(!dto.password().equals(dto.confirmPassword())){
+      throw new IllegalArgumentException("비밀번호가 일치하지 않습니다!");
+    }
+
     if(userAccountRepository.existsById(dto.username().trim())){
       throw new IllegalArgumentException("이미 존재하는 사용자 Id 입니다 - " + dto.username());
     }
@@ -101,9 +115,12 @@ public class UserAccountService {
     );
 
     UserAccount savedUser = userAccountRepository.save(userAccount);
+
+    return UserAccountDto.from(savedUser);
   }
 
-  public void deleteUser(String username){
+  public void deleteUser(){
+    String username = SecurityUtil.getCurrentUsername();
     try{
       userAccountRepository.deleteById(username);
     } catch (IllegalArgumentException e){
@@ -111,7 +128,8 @@ public class UserAccountService {
     }
   }
 
-  public void updateUser(String username, UserAccountDto dto){
+  public void updateUser(UserAccountDto dto){
+    String username = SecurityUtil.getCurrentUsername();
     if(!username.equals(dto.username())) return;
 
     if(dto.nickname().trim().contains(" ")){
@@ -137,7 +155,8 @@ public class UserAccountService {
     userAccount.setProfileUrl(profileUrl);
   }
 
-  public void changePassword(String username, ChangePasswordRequest dto){
+  public void changePassword(ChangePasswordRequest dto){
+    String username = SecurityUtil.getCurrentUsername();
     UserAccount userAccount = userAccountRepository.getReferenceById(username);
 
     if(dto.currentPassword().contains(" ") || dto.newPassword().contains(" ") || dto.confirmPassword().contains(" ")){

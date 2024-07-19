@@ -1,5 +1,4 @@
-package com.example.hoonsletter_back_springboot.service;
-
+package com.example.hoonsletter_back_springboot.config;
 
 import com.example.hoonsletter_back_springboot.dto.JwtToken;
 import io.jsonwebtoken.Claims;
@@ -23,10 +22,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-@Service
+@Component
 public class JwtTokenProvider {
   private final Key key;
 
@@ -56,7 +55,7 @@ public class JwtTokenProvider {
 
     // RefreshToken 생성
     String refreshToken = Jwts.builder()
-        .setExpiration(new Date(now + dayToMillis * 7))
+        .setExpiration(accessTokenExpiresIn)
         .signWith(key, SignatureAlgorithm.HS256)
         .compact();
 

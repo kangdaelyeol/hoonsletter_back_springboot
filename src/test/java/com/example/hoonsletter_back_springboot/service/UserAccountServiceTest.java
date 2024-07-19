@@ -12,11 +12,14 @@ import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.dto.UserAccountWithLettersDto;
 import com.example.hoonsletter_back_springboot.dto.request.ChangePasswordRequest;
+import com.example.hoonsletter_back_springboot.dto.request.SignUpRequest;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +29,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 
 
 @DisplayName("Business Logic - UserAccount")
@@ -38,21 +44,32 @@ class UserAccountServiceTest {
 
   @Mock
   PasswordEncoder passwordEncoder;
+
   @Mock
   UserAccountRepository userAccountRepository;
 
+  @BeforeEach
+  void setUp() {
+    String username = "testUsername";
+    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, "", List.of());
+    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+  }
 
   @DisplayName("유저 정보를 입력하면 유저 정보를 저장한다.")
   @Test
   void givenUserAccountInfo_whenSavingUserAccount_thenSavesUserAccount() {
     // Given
     String encodedPw = "abcd1234abcd1234asdf";
-    UserAccountDto dto = createUserAccountDto();
+    SignUpRequest dto = SignUpRequest.of("testUsername",
+        "password",
+        "password",
+        "testNickname",
+        "testProfileUrl");
     UserAccount userAccount = UserAccount.of(
         "testUsername",
         encodedPw,
         "testNickname",
-        "testThumbnail"
+        "testProfileUrl"
     );
     given(passwordEncoder.encode(dto.password())).willReturn(encodedPw);
     given(userAccountRepository.save(any(UserAccount.class))).willReturn(userAccount);
@@ -68,7 +85,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithShortUsername_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto("short", "password");
+    SignUpRequest dto = SignUpRequest.of("short",
+        "password",
+        "password",
+        "nickname",
+        "profileUrl");
 
     given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
     given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
@@ -92,7 +113,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithExistsUsername_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto();
+    SignUpRequest dto = SignUpRequest.of("username",
+        "password",
+        "password",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username())).willReturn(true);
 
     // When
@@ -110,7 +135,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithUsernameContainingSpace_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto(" user name ", "password");
+    SignUpRequest dto = SignUpRequest.of("user name",
+        "password",
+        "password",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
     given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
     given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
@@ -131,7 +160,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithShortPassword_whenSavingUserAccount_thenThrowsException() {
     // Given
-    UserAccountDto dto = createUserAccountDto("testUsername", "short");
+    SignUpRequest dto = SignUpRequest.of("username",
+        "short",
+        "short",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username().trim())).willReturn(false);
     given(userAccountRepository.existsById(dto.nickname().trim())).willReturn(false);
     given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(false);
@@ -154,7 +187,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithPasswordContainingSpace_whenSavingUserAccount_thenThrowsException(){
     // Given
-    UserAccountDto dto = createUserAccountDto("username", "pass word");
+    SignUpRequest dto = SignUpRequest.of("username",
+        "pass word",
+        "pass word",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username())).willReturn(false);
 
     // When
@@ -171,7 +208,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithNicknameContainingSpace_whenSavingUserAccount_thenThrowsException(){
     // Given
-    UserAccountDto dto = createUserAccountDto("username", "password", "nick   name", "thumbnail");
+    SignUpRequest dto = SignUpRequest.of("username",
+        "password",
+        "password",
+        "nick name",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username())).willReturn(false);
 
     // When
@@ -188,7 +229,11 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithExistsNickname_whenSavingUserAccount_thenThrowsException(){
     // Given
-    UserAccountDto dto = createUserAccountDto();
+    SignUpRequest dto = SignUpRequest.of("username",
+        "password",
+        "password",
+        "nickname",
+        "profileUrl");
     given(userAccountRepository.existsById(dto.username())).willReturn(false);
     given(userAccountRepository.existsByNickname(dto.nickname())).willReturn(true);
 
@@ -213,7 +258,7 @@ class UserAccountServiceTest {
     given(userAccountRepository.findById(username)).willReturn(Optional.of(userAccount));
 
     // When
-    UserAccountWithLettersDto dto = sut.getUserAccount(username);
+    UserAccountWithLettersDto dto = sut.getUserAccountWithLetter(username);
 
     // Then
     then(userAccountRepository).should().findById(username);
@@ -233,7 +278,7 @@ class UserAccountServiceTest {
    given(userAccountRepository.findById(username)).willReturn(Optional.empty());
 
     // When
-    Throwable t = catchThrowable(() -> sut.getUserAccount(username));
+    Throwable t = catchThrowable(() -> sut.getUserAccountWithLetter(username));
 
     // Then
     assertThat(t)
@@ -243,6 +288,7 @@ class UserAccountServiceTest {
   }
 
   @DisplayName("유저의 아이디를 입력하면 유저를 삭제한다")
+  @WithMockUser(username = "testUsername")
   @Test
   void givenUsername_whenDeletingUserAccount_thenDeletesUserAccount(){
     // Given
@@ -250,7 +296,7 @@ class UserAccountServiceTest {
     willDoNothing().given(userAccountRepository).deleteById(username);
 
     // When
-    sut.deleteUser(username);
+    sut.deleteUser();
 
     // Then
     then(userAccountRepository).should().deleteById(username);
@@ -260,7 +306,7 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfo_whenUpdatingUserAccount_thenUpdatesUserAccount(){
     // Given
-    String username = "testUser";
+    String username = "testUsername";
     UserAccount userAccount = createUserAccount(username);
     UserAccountDto dto = createUserAccountDto(username,
         "password",
@@ -270,7 +316,7 @@ class UserAccountServiceTest {
     given(userAccountRepository.existsByNickname(dto.nickname())).willReturn(false);
 
     // When
-    sut.updateUser(username, dto);
+    sut.updateUser(dto);
 
     // Then
     then(userAccountRepository).should().getReferenceById(username);
@@ -284,13 +330,14 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithExistsNickname_whenUpdatingUserAccount_thenThrowsException() {
     // Given
-    String username = "testUser";
+    String username = "testUsername";
     UserAccountDto dto = createUserAccountDto(username, "testPassword");
 
     given(userAccountRepository.existsByNickname(dto.nickname().trim())).willReturn(true);
 
+
     // When
-    Throwable t = catchThrowable(() -> sut.updateUser(username, dto));
+    Throwable t = catchThrowable(() -> sut.updateUser(dto));
 
     // Then
     assertThat(t)
@@ -304,12 +351,13 @@ class UserAccountServiceTest {
   @Test
   void givenUserAccountInfoWithNicknameContainsBlank_whenSavingUserAccount_thenThrowsException() {
     // Given
-    String username = "testUser";
+    String username = "testUsername";
     String nickname = "b lank nickname";
     UserAccountDto dto = createUserAccountDto(username, "password", nickname, "profile");
 
+
     // When
-    Throwable t = catchThrowable(() -> sut.updateUser(username, dto));
+    Throwable t = catchThrowable(() -> sut.updateUser(dto));
 
     // Then
     assertThat(t)
@@ -323,7 +371,7 @@ class UserAccountServiceTest {
   @Test
   void givenChangePasswordInfo_whenChangingPassword_thenChangesPassword() {
     // Given
-    UserAccount userAccount = createUserAccount("testUser");
+    UserAccount userAccount = createUserAccount("testUsername");
     String currentPassword = "testPassword";
     String currentEncodedPassword = userAccount.getPassword();
     String newPassword = "newPassword";
@@ -338,7 +386,7 @@ class UserAccountServiceTest {
     given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
 
     // When
-    sut.changePassword(userAccount.getUsername(), request);
+    sut.changePassword(request);
 
     // Then
     assertThat(userAccount)
@@ -376,8 +424,9 @@ class UserAccountServiceTest {
     );
     given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
 
+
     // When
-    Throwable t = catchThrowable(() -> sut.changePassword(userAccount.getUsername(), request));
+    Throwable t = catchThrowable(() -> sut.changePassword(request));
 
     // Then
     assertThat(t)
@@ -401,7 +450,7 @@ class UserAccountServiceTest {
     given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
 
     // When
-    Throwable t = catchThrowable(() -> sut.changePassword(userAccount.getUsername(), request));
+    Throwable t = catchThrowable(() -> sut.changePassword(request));
 
     // Then
     assertThat(t)
@@ -427,7 +476,7 @@ class UserAccountServiceTest {
     given(userAccountRepository.getReferenceById(userAccount.getUsername())).willReturn(userAccount);
 
     // When
-    Throwable t = catchThrowable(() -> sut.changePassword(userAccount.getUsername(), request));
+    Throwable t = catchThrowable(() -> sut.changePassword(request));
 
     // Then
     assertThat(t)
@@ -454,7 +503,7 @@ class UserAccountServiceTest {
     given(passwordEncoder.matches(request.currentPassword(), userAccount.getPassword())).willReturn(true);
 
     // When
-    Throwable t = catchThrowable(() -> sut.changePassword(userAccount.getUsername(), request));
+    Throwable t = catchThrowable(() -> sut.changePassword(request));
 
     // Then
     assertThat(t)
@@ -467,7 +516,7 @@ class UserAccountServiceTest {
 
   UserAccount createUserAccount() {
     return UserAccount.of(
-        "testUser",
+        "testUsername",
         "encodedPassword",
         "testNickname",
         "testProfileUrl"

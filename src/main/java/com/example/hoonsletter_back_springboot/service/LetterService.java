@@ -12,6 +12,7 @@ import com.example.hoonsletter_back_springboot.dto.SceneMessageDto;
 import com.example.hoonsletter_back_springboot.dto.ScenePictureDto;
 import com.example.hoonsletter_back_springboot.repository.LetterRepository;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
+import com.example.hoonsletter_back_springboot.util.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,8 @@ public class LetterService {
         .orElseThrow(() -> new EntityNotFoundException("편지를 찾을 수 없습니다 - letterId: " + letterId));
   }
 
-  public void deleteLetter(Long letterId, String username) {
+  public void deleteLetter(Long letterId) {
+    String username = SecurityUtil.getCurrentUsername();
     letterRepository.deleteByIdAndUserAccount_Username(letterId, username);
   }
 

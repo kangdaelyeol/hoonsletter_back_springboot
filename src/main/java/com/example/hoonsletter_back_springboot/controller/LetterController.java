@@ -1,6 +1,7 @@
 package com.example.hoonsletter_back_springboot.controller;
 
 import com.example.hoonsletter_back_springboot.domain.constant.SearchType;
+import com.example.hoonsletter_back_springboot.dto.request.LetterIdRequest;
 import com.example.hoonsletter_back_springboot.dto.response.GetLetterResponse;
 import com.example.hoonsletter_back_springboot.dto.response.LetterInfoResponse;
 import com.example.hoonsletter_back_springboot.service.LetterService;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -42,6 +45,12 @@ public class LetterController {
     Pageable pageable = PageRequest.of(page, 10, sort);
 
     return ResponseEntity.ok(letterService.searchLetters(searchType, keyword, pageable).map(LetterInfoResponse::from));
+  }
+
+  @PostMapping("/delete")
+  public ResponseEntity<Void> deleteLetter(@RequestBody LetterIdRequest request){
+    letterService.deleteLetter(request.letterId());
+    return ResponseEntity.status(200).build();
   }
 
 

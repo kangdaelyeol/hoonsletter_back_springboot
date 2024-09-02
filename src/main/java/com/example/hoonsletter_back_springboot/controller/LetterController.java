@@ -1,7 +1,9 @@
 package com.example.hoonsletter_back_springboot.controller;
 
 import com.example.hoonsletter_back_springboot.domain.constant.SearchType;
+import com.example.hoonsletter_back_springboot.dto.LetterDto;
 import com.example.hoonsletter_back_springboot.dto.request.LetterIdRequest;
+import com.example.hoonsletter_back_springboot.dto.request.LetterSaveRequest;
 import com.example.hoonsletter_back_springboot.dto.response.GetLetterResponse;
 import com.example.hoonsletter_back_springboot.dto.response.LetterInfoResponse;
 import com.example.hoonsletter_back_springboot.service.LetterService;

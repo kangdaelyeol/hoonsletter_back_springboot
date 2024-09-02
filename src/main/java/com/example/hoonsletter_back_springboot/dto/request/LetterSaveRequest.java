@@ -10,7 +10,7 @@ import com.example.hoonsletter_back_springboot.dto.ScenePictureDto;
 import java.util.List;
 
 // updatable, user_id은 백엔드에서 처리
-public record SaveLetterRequest(
+public record LetterSaveRequest(
     String title,
     LetterType type,
     String thumbnail,

@@ -83,7 +83,7 @@ public class LetterService {
       // check updatable
       if(!letter.isUpdatable()) return;
 
-      UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().username());
+      UserAccount userAccount = userAccountRepository.getReferenceById(SecurityUtil.getCurrentUsername());
       // check equality
       if(!letter.getUserAccount().equals(userAccount)) return;
 
@@ -95,16 +95,13 @@ public class LetterService {
         letter.setThumbnailUrl(dto.thumbnailUrl());
       }
 
-      List<LetterScene> letterScenes = new ArrayList<>();
+      letter.getLetterScenes().clear();
+
       dto.letterSceneDtos().forEach(letterScene -> {
         LetterScene scene = createLetterScene(letterScene, letter);
-        letterScenes.add(scene);
+        letter.addLetterScene(scene);
       });
-
-      letter.getLetterScenes().clear();
-      letter.setLetterScenes(letterScenes);
-
-
+      
     } catch (EntityNotFoundException e){
       log.warn("게시글 업데이트 실패. 업데이트에 필요한 정보를 찾을 수 없습니다 - ", e.getLocalizedMessage());
     }

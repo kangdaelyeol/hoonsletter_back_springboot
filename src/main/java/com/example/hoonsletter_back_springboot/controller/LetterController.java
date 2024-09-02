@@ -3,6 +3,7 @@ package com.example.hoonsletter_back_springboot.controller;
 import com.example.hoonsletter_back_springboot.domain.constant.SearchType;
 import com.example.hoonsletter_back_springboot.dto.LetterDto;
 import com.example.hoonsletter_back_springboot.dto.request.LetterIdRequest;
+import com.example.hoonsletter_back_springboot.dto.request.LetterUpdateRequest;
 import com.example.hoonsletter_back_springboot.dto.request.LetterSaveRequest;
 import com.example.hoonsletter_back_springboot.dto.response.GetLetterResponse;
 import com.example.hoonsletter_back_springboot.dto.response.LetterInfoResponse;
@@ -55,9 +56,14 @@ public class LetterController {
     return ResponseEntity.status(200).build();
   }
 
+  @PostMapping("/update")
+  public ResponseEntity<Void> updateLetter(@RequestBody LetterUpdateRequest request) {
+    letterService.updateLetter(request.letterId(), request.toDto());
+    return ResponseEntity.status(200).build();
+  }
 
   @PostMapping("/create")
-  public ResponseEntity<LetterDto> createLetter(@RequestBody SaveLetterRequest request) {
+  public ResponseEntity<LetterDto> createLetter(@RequestBody LetterSaveRequest request) {
     LetterDto savedLetterDto = letterService.saveLetter(request.toDto());
     return ResponseEntity.ok(savedLetterDto);
   }

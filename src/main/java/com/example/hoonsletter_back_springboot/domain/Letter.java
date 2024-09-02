@@ -69,6 +69,16 @@ public class Letter {
   @OneToMany(mappedBy = "letter", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<LetterScene> letterScenes = new ArrayList<>();
 
+  public void addLetterScene(LetterScene scene){
+    letterScenes.add(scene);
+    scene.setLetter(this);
+  }
+
+  public void removeLetterScene(LetterScene scene){
+    letterScenes.remove(scene);
+    scene.setLetter(this);
+  }
+
   protected Letter(){} // no-args constructor
 
   private Letter(String title, LetterType letterType, boolean updatable, String thumbnailUrl, UserAccount userAccount){

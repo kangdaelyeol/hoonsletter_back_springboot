@@ -54,4 +54,9 @@ public class LetterController {
   }
 
 
+  @PostMapping("/create")
+  public ResponseEntity<LetterDto> createLetter(@RequestBody SaveLetterRequest request) {
+    LetterDto savedLetterDto = letterService.saveLetter(request.toDto());
+    return ResponseEntity.ok(savedLetterDto);
+  }
 }

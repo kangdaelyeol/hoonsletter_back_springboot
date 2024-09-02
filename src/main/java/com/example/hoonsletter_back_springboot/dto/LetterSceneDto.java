@@ -39,6 +39,6 @@ public record LetterSceneDto(
   }
 
   public LetterScene toEntity(Letter letter){
-    return LetterScene.of(order, letter);
+    return LetterScene.of(order(), letter);
   }
 }

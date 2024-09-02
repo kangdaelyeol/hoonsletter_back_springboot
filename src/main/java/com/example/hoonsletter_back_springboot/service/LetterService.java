@@ -33,8 +33,8 @@ public class LetterService {
 
   private final UserAccountRepository userAccountRepository;
 
-  public void saveLetter(LetterDto dto){
-    UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().username());
+  public LetterDto saveLetter(LetterDto dto){
+    UserAccount userAccount = userAccountRepository.getReferenceById(SecurityUtil.getCurrentUsername());
 
     Letter letter = dto.toEntity(userAccount);
     List<LetterSceneDto> letterSceneDtos = dto.letterSceneDtos();
@@ -48,6 +48,7 @@ public class LetterService {
     }
     letter.setLetterScenes(letterScenes);
     Letter savedLetter = letterRepository.save(letter);
+    return LetterDto.from(savedLetter);
   }
 
   @Transactional(readOnly = true)

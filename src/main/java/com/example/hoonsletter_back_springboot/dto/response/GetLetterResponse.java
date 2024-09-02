@@ -33,8 +33,8 @@ public record GetLetterResponse(
     }
 
     public static Scene from(LetterSceneDto dto) {
-      List<SceneMessageDto> sortedMessageDtoList = dto.messageDtos().stream().sorted(Comparator.comparingInt(SceneMessageDto::order)).toList(); // order 순서대로 정렬
-      List<ScenePictureDto> sortedPictureDtoList = dto.pictureDtos().stream().sorted(Comparator.comparingInt(ScenePictureDto::order)).toList(); // order 순서대로 정렬
+      List<SceneMessageDto> sortedMessageDtoList = dto.messageDtos().stream().sorted(Comparator.comparingInt(SceneMessageDto::partOrder)).toList(); // partOrder 순서대로 정렬
+      List<ScenePictureDto> sortedPictureDtoList = dto.pictureDtos().stream().sorted(Comparator.comparingInt(ScenePictureDto::partOrder)).toList(); // partOrder 순서대로 정렬
 
       List<MessageContent> messageList = sortedMessageDtoList.stream().map(MessageContent::from).toList();
       List<String> pictureList = sortedPictureDtoList.stream().map(ScenePictureDto::url).toList();
@@ -44,9 +44,10 @@ public record GetLetterResponse(
   }
 
   public static GetLetterResponse from(LetterDto dto) {
+    List<LetterSceneDto> sortedSceneList = dto.letterSceneDtos().stream().sorted(Comparator.comparingInt(LetterSceneDto::partOrder)).toList();
     return new GetLetterResponse(
         dto.letterType(),
-        dto.letterSceneDtos().stream().map(Scene::from).toList()
+        sortedSceneList.stream().map(Scene::from).toList()
     );
   }
 

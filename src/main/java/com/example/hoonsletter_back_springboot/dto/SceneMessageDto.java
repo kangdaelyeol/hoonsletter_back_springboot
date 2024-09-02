@@ -7,19 +7,19 @@ import com.example.hoonsletter_back_springboot.domain.constant.MessageSizeType;
 
 public record SceneMessageDto(
     Long id,
-    int order,
+    int partOrder,
     String content,
     MessageSizeType sizeType,
     MessageColorType colorType,
     Long sceneId
     ) {
   public static SceneMessageDto of(Long id,
-      int order,
+      int partOrder,
       String content,
       MessageSizeType sizeType,
       MessageColorType colorType,
       Long sceneId){
-    return new SceneMessageDto(id, order, content, sizeType, colorType, sceneId);
+    return new SceneMessageDto(id, partOrder, content, sizeType, colorType, sceneId);
   }
 
   public static SceneMessageDto from(SceneMessage entity){
@@ -33,6 +33,10 @@ public record SceneMessageDto(
     );
   }
   public SceneMessage toEntity(LetterScene letterScene){
-    return  SceneMessage.of(order, content, sizeType, colorType, letterScene);
+    return  SceneMessage.of(partOrder(),
+        content(),
+        sizeType(),
+        colorType(),
+        letterScene);
   }
 }

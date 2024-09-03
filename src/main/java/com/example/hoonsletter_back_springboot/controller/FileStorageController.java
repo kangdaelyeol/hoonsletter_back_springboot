@@ -1,18 +1,13 @@
 package com.example.hoonsletter_back_springboot.controller;
 
 
-import java.io.File;
+import com.example.hoonsletter_back_springboot.service.FileStorageService;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Date;
-import java.util.Objects;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +20,14 @@ public class FileStorageController {
   @Value(value = "${file-upload-dir}")
   private String uploadDirPath;
 
+  private FileStorageService fileStorageService;
+
+  @Autowired
+  public FileStorageController(FileStorageService fileStorageService) {
+    this.fileStorageService = fileStorageService;
+  }
+
+
 
   @PostMapping("/upload")
   public ResponseEntity<String> uploadFile(
@@ -35,11 +38,7 @@ public class FileStorageController {
     }
 
     try {
-      String uniquePrefix = new Date().toString();
-      String fileName = uniquePrefix + StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-      Path path = Paths.get(uploadDirPath + File.separator + fileName);
-
-      Files.copy(file.getInputStream(), path);
+      String fileName = fileStorageService.UploadFile(file);
 
       return ResponseEntity.ok(fileName);
     } catch (IOException e) {

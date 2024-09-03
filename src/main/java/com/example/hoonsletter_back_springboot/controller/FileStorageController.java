@@ -3,12 +3,14 @@ package com.example.hoonsletter_back_springboot.controller;
 
 import com.example.hoonsletter_back_springboot.service.FileStorageService;
 import java.io.IOException;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,7 +40,7 @@ public class FileStorageController {
     }
 
     try {
-      String fileName = fileStorageService.UploadFile(file);
+      String fileName = fileStorageService.uploadFile(file);
 
       return ResponseEntity.ok(fileName);
     } catch (IOException e) {
@@ -46,4 +48,16 @@ public class FileStorageController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 업로드 실패 - " + e.getLocalizedMessage());
     }
   }
+
+  @PostMapping("/delete")
+  public ResponseEntity<Void> deleteFile(@RequestBody String fileName) {
+    try {
+      fileStorageService.deleteFile(fileName);
+    } catch (IOException e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
+    return ResponseEntity.ok().build();
+  }
+  
 }

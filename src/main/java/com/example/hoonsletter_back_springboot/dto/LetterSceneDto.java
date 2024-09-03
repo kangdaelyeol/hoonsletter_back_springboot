@@ -6,18 +6,18 @@ import java.util.List;
 
 public record LetterSceneDto(
     Long id,
-    int order,
+    int partOrder,
     Long letterId,
     List<SceneMessageDto> messageDtos,
     List<ScenePictureDto> pictureDtos
 ) {
   public static LetterSceneDto of(Long id,
-      int order,
+      int partOrder,
       Long letterId,
       List<SceneMessageDto> messageDtos,
       List<ScenePictureDto> pictureDtos){
     return new LetterSceneDto(id,
-        order,
+        partOrder,
         letterId,
         messageDtos,
         pictureDtos);
@@ -39,6 +39,6 @@ public record LetterSceneDto(
   }
 
   public LetterScene toEntity(Letter letter){
-    return LetterScene.of(order, letter);
+    return LetterScene.of(partOrder(), letter);
   }
 }

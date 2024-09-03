@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @DisplayName("Business Logic - Letter")
@@ -48,6 +51,13 @@ class LetterServiceTest {
   LetterRepository letterRepository;
   @Mock
   UserAccountRepository userAccountRepository;
+
+  @BeforeEach
+  void setUp() {
+    String username = "testUsername";
+    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, "", List.of());
+    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+  }
 
   @DisplayName("편지 정보를 입력하면 편지를 저장합니다.")
   @Test
@@ -144,16 +154,16 @@ class LetterServiceTest {
     then(letterRepository).should().findById(letterId);
   }
 
-  @DisplayName("편지의 id와 유저 아이디를 입력하면 편지를 삭제한다.")
+  @DisplayName("편지의 id를 입력하면 편지를 삭제한다.")
   @Test
   void givenLetterIdAndUsername_whenDeleting_thenDeletesLetter(){
     // Given
     Long letterId = 1L;
-    String username = "test1";
+    String username = "testUsername";
     willDoNothing().given(letterRepository).deleteByIdAndUserAccount_Username(letterId, username);
 
     // When
-    sut.deleteLetter(letterId, username);
+    sut.deleteLetter(letterId);
 
     // Then
     then(letterRepository).should().deleteByIdAndUserAccount_Username(letterId, username);

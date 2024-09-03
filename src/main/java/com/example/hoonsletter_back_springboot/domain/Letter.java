@@ -53,7 +53,7 @@ public class Letter {
 
   @CreatedDate
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-  @Column(nullable = false)
+  @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
   @Column(nullable = false)
@@ -68,6 +68,16 @@ public class Letter {
   @ToString.Exclude
   @OneToMany(mappedBy = "letter", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<LetterScene> letterScenes = new ArrayList<>();
+
+  public void addLetterScene(LetterScene scene){
+    letterScenes.add(scene);
+    scene.setLetter(this);
+  }
+
+  public void removeLetterScene(LetterScene scene){
+    letterScenes.remove(scene);
+    scene.setLetter(this);
+  }
 
   protected Letter(){} // no-args constructor
 

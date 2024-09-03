@@ -12,6 +12,7 @@ import com.example.hoonsletter_back_springboot.dto.SceneMessageDto;
 import com.example.hoonsletter_back_springboot.dto.ScenePictureDto;
 import com.example.hoonsletter_back_springboot.repository.LetterRepository;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
+import com.example.hoonsletter_back_springboot.util.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +33,8 @@ public class LetterService {
 
   private final UserAccountRepository userAccountRepository;
 
-  public void saveLetter(LetterDto dto){
-    UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().username());
+  public LetterDto saveLetter(LetterDto dto){
+    UserAccount userAccount = userAccountRepository.getReferenceById(SecurityUtil.getCurrentUsername());
 
     Letter letter = dto.toEntity(userAccount);
     List<LetterSceneDto> letterSceneDtos = dto.letterSceneDtos();
@@ -47,6 +48,7 @@ public class LetterService {
     }
     letter.setLetterScenes(letterScenes);
     Letter savedLetter = letterRepository.save(letter);
+    return LetterDto.from(savedLetter);
   }
 
   @Transactional(readOnly = true)
@@ -56,7 +58,8 @@ public class LetterService {
         .orElseThrow(() -> new EntityNotFoundException("편지를 찾을 수 없습니다 - letterId: " + letterId));
   }
 
-  public void deleteLetter(Long letterId, String username) {
+  public void deleteLetter(Long letterId) {
+    String username = SecurityUtil.getCurrentUsername();
     letterRepository.deleteByIdAndUserAccount_Username(letterId, username);
   }
 
@@ -80,7 +83,7 @@ public class LetterService {
       // check updatable
       if(!letter.isUpdatable()) return;
 
-      UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().username());
+      UserAccount userAccount = userAccountRepository.getReferenceById(SecurityUtil.getCurrentUsername());
       // check equality
       if(!letter.getUserAccount().equals(userAccount)) return;
 
@@ -92,16 +95,13 @@ public class LetterService {
         letter.setThumbnailUrl(dto.thumbnailUrl());
       }
 
-      List<LetterScene> letterScenes = new ArrayList<>();
+      letter.getLetterScenes().clear();
+
       dto.letterSceneDtos().forEach(letterScene -> {
         LetterScene scene = createLetterScene(letterScene, letter);
-        letterScenes.add(scene);
+        letter.addLetterScene(scene);
       });
-
-      letter.getLetterScenes().clear();
-      letter.setLetterScenes(letterScenes);
-
-
+      
     } catch (EntityNotFoundException e){
       log.warn("게시글 업데이트 실패. 업데이트에 필요한 정보를 찾을 수 없습니다 - ", e.getLocalizedMessage());
     }

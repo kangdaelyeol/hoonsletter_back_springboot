@@ -59,5 +59,4 @@ public class FileStorageController {
 
     return ResponseEntity.ok().build();
   }
-  
 }

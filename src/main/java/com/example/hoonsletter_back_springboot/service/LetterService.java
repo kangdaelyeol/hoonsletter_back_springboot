@@ -14,6 +14,7 @@ import com.example.hoonsletter_back_springboot.repository.LetterRepository;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import com.example.hoonsletter_back_springboot.util.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,8 @@ public class LetterService {
   private final LetterRepository letterRepository;
 
   private final UserAccountRepository userAccountRepository;
+
+  private final FileStorageService fileStorageService;
 
   public LetterDto saveLetter(LetterDto dto){
     UserAccount userAccount = userAccountRepository.getReferenceById(SecurityUtil.getCurrentUsername());
@@ -60,7 +63,34 @@ public class LetterService {
 
   public void deleteLetter(Long letterId) {
     String username = SecurityUtil.getCurrentUsername();
+    Letter letter = letterRepository.findById(letterId).orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다!" + letterId));
+
+    if(!letter.getUserAccount().getUsername().equals(username)) return;
+
+    List<String> pictureList = getPictureList(letter);
+
+    pictureList.forEach(url -> {
+      try{
+        fileStorageService.deleteFileByPath(url);
+      } catch (IOException e) {
+        log.warn("파일 삭제 실패 - url: " + url);
+      }
+    });
+
     letterRepository.deleteByIdAndUserAccount_Username(letterId, username);
+  }
+
+  public static List<String> getPictureList(Letter letter) {
+    List<String> pictureList = new ArrayList<>(letter.getLetterScenes()
+        .stream()
+        .flatMap(scene -> scene.getScenePictures().stream())
+        .map(ScenePicture::getUrl)
+        .toList());
+
+
+    pictureList.add(letter.getThumbnailUrl());
+
+    return pictureList;
   }
 
   @Transactional(readOnly = true)

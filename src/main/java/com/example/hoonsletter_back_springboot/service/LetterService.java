@@ -80,19 +80,6 @@ public class LetterService {
     letterRepository.deleteByIdAndUserAccount_Username(letterId, username);
   }
 
-  public static List<String> getPictureList(Letter letter) {
-    List<String> pictureList = new ArrayList<>(letter.getLetterScenes()
-        .stream()
-        .flatMap(scene -> scene.getScenePictures().stream())
-        .map(ScenePicture::getUrl)
-        .toList());
-
-
-    pictureList.add(letter.getThumbnailUrl());
-
-    return pictureList;
-  }
-
   @Transactional(readOnly = true)
   public Page<LetterDto> searchLetters(SearchType searchType, String keyword, Pageable pageable){
     if(keyword == null || keyword.isBlank()){
@@ -155,5 +142,18 @@ public class LetterService {
     scene.setSceneMessages(sceneMessages);
     scene.setScenePictures(scenePictures);
     return scene;
+  }
+
+  private static List<String> getPictureList(Letter letter) {
+    List<String> pictureList = new ArrayList<>(letter.getLetterScenes()
+        .stream()
+        .flatMap(scene -> scene.getScenePictures().stream())
+        .map(ScenePicture::getUrl)
+        .toList());
+
+
+    pictureList.add(letter.getThumbnailUrl());
+
+    return pictureList;
   }
 }

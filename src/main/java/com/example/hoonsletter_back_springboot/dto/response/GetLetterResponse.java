@@ -15,6 +15,7 @@ public record GetLetterResponse(
     List<Scene> sceneList
 ) {
 
+
   public record Scene (
       List<MessageContent> messageList,
       List<String> pictureList
@@ -41,6 +42,8 @@ public record GetLetterResponse(
 
       return new Scene(messageList, pictureList);
     }
+
+
   }
 
   public static GetLetterResponse from(LetterDto dto) {

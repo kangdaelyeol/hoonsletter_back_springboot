@@ -15,6 +15,8 @@ import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import com.example.hoonsletter_back_springboot.util.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -43,12 +45,11 @@ public class LetterService {
     List<LetterSceneDto> letterSceneDtos = dto.letterSceneDtos();
     List<LetterScene> letterScenes = new ArrayList<>();
 
-    for(LetterSceneDto sceneDto : letterSceneDtos){
-
+    letterSceneDtos.forEach(sceneDto -> {
       LetterScene scene = createLetterScene(sceneDto, letter);
       letterScenes.add(scene);
+    });
 
-    }
     letter.setLetterScenes(letterScenes);
     Letter savedLetter = letterRepository.save(letter);
     return LetterDto.from(savedLetter);
@@ -69,11 +70,11 @@ public class LetterService {
 
     List<String> pictureList = getPictureList(letter);
 
-    pictureList.forEach(url -> {
+    pictureList.forEach(fileName -> {
       try{
-        fileStorageService.deleteFileByPath(url);
+        fileStorageService.deleteFileByName(fileName);
       } catch (IOException e) {
-        log.warn("파일 삭제 실패 - url: " + url);
+        log.warn("파일 삭제 실패 - fileName: " + fileName);
       }
     });
 
@@ -129,18 +130,23 @@ public class LetterService {
     List<ScenePicture> scenePictures = new ArrayList<>();
     LetterScene scene = sceneDto.toEntity(letter);
 
-    for(SceneMessageDto messageDto : sceneDto.messageDtos()){
-      SceneMessage message = messageDto.toEntity(scene);
-      sceneMessages.add(message);
-    }
+    sceneDto.messageDtos()
+        .forEach(messageDto -> {
+          SceneMessage message = messageDto.toEntity(scene);
+          sceneMessages.add(message);
+        });
 
-    for(ScenePictureDto pictureDto : sceneDto.pictureDtos()){
-      ScenePicture picture = pictureDto.toEntity(scene);
-      scenePictures.add(picture);
-    }
+    sceneDto.pictureDtos()
+        .forEach(pictureDto -> {
+          ScenePicture picture = pictureDto.toEntity(scene);
+          String originalFileName = getOriginalFileNameWithExtension(pictureDto.url());
+          picture.setUrl(originalFileName);
+          scenePictures.add(picture);
+        });
 
     scene.setSceneMessages(sceneMessages);
     scene.setScenePictures(scenePictures);
+
     return scene;
   }
 
@@ -155,5 +161,10 @@ public class LetterService {
     pictureList.add(letter.getThumbnailUrl());
 
     return pictureList;
+  }
+
+  private static String getOriginalFileNameWithExtension(String filePath) {
+    Path path = Paths.get(filePath);
+    return path.getFileName().toString();
   }
 }

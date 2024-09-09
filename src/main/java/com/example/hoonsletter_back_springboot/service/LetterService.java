@@ -8,8 +8,6 @@ import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.domain.constant.SearchType;
 import com.example.hoonsletter_back_springboot.dto.LetterDto;
 import com.example.hoonsletter_back_springboot.dto.LetterSceneDto;
-import com.example.hoonsletter_back_springboot.dto.SceneMessageDto;
-import com.example.hoonsletter_back_springboot.dto.ScenePictureDto;
 import com.example.hoonsletter_back_springboot.repository.LetterRepository;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import com.example.hoonsletter_back_springboot.util.SecurityUtil;
@@ -42,10 +40,10 @@ public class LetterService {
     UserAccount userAccount = userAccountRepository.getReferenceById(SecurityUtil.getCurrentUsername());
 
     Letter letter = dto.toEntity(userAccount);
-    List<LetterSceneDto> letterSceneDtos = dto.letterSceneDtos();
+    List<LetterSceneDto> letterSceneDtoList = dto.letterSceneDtoList();
     List<LetterScene> letterScenes = new ArrayList<>();
 
-    letterSceneDtos.forEach(sceneDto -> {
+    letterSceneDtoList.forEach(sceneDto -> {
       LetterScene scene = createLetterScene(sceneDto, letter);
       letterScenes.add(scene);
     });
@@ -115,7 +113,7 @@ public class LetterService {
 
       letter.getLetterScenes().clear();
 
-      dto.letterSceneDtos().forEach(letterScene -> {
+      dto.letterSceneDtoList().forEach(letterScene -> {
         LetterScene scene = createLetterScene(letterScene, letter);
         letter.addLetterScene(scene);
       });
@@ -130,13 +128,13 @@ public class LetterService {
     List<ScenePicture> scenePictures = new ArrayList<>();
     LetterScene scene = sceneDto.toEntity(letter);
 
-    sceneDto.messageDtos()
+    sceneDto.messageDtoList()
         .forEach(messageDto -> {
           SceneMessage message = messageDto.toEntity(scene);
           sceneMessages.add(message);
         });
 
-    sceneDto.pictureDtos()
+    sceneDto.pictureDtoList()
         .forEach(pictureDto -> {
           ScenePicture picture = pictureDto.toEntity(scene);
           String originalFileName = getOriginalFileNameWithExtension(pictureDto.url());

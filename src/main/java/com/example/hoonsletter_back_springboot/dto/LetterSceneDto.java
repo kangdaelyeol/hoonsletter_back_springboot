@@ -8,19 +8,19 @@ public record LetterSceneDto(
     Long id,
     int partOrder,
     Long letterId,
-    List<SceneMessageDto> messageDtos,
-    List<ScenePictureDto> pictureDtos
+    List<SceneMessageDto> messageDtoList,
+    List<ScenePictureDto> pictureDtoList
 ) {
   public static LetterSceneDto of(Long id,
       int partOrder,
       Long letterId,
-      List<SceneMessageDto> messageDtos,
-      List<ScenePictureDto> pictureDtos){
+      List<SceneMessageDto> messageDtoList,
+      List<ScenePictureDto> pictureDtoList){
     return new LetterSceneDto(id,
         partOrder,
         letterId,
-        messageDtos,
-        pictureDtos);
+        messageDtoList,
+        pictureDtoList);
   }
 
 

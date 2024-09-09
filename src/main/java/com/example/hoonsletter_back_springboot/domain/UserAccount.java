@@ -51,7 +51,7 @@ public class UserAccount implements UserDetails {
 
   @ToString.Exclude
   @OneToMany(mappedBy = "userAccount", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<Letter> letters;
+  private List<Letter> letterList;
 
   protected UserAccount(){}
 

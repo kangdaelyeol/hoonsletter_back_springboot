@@ -1,6 +1,8 @@
 package com.example.hoonsletter_back_springboot.controller;
 
+import com.example.hoonsletter_back_springboot.domain.constant.SearchDirectionType;
 import com.example.hoonsletter_back_springboot.domain.constant.SearchType;
+import com.example.hoonsletter_back_springboot.domain.constant.SortType;
 import com.example.hoonsletter_back_springboot.dto.LetterDto;
 import com.example.hoonsletter_back_springboot.dto.request.LetterIdRequest;
 import com.example.hoonsletter_back_springboot.dto.request.LetterUpdateRequest;
@@ -47,11 +49,15 @@ public class LetterController {
   @GetMapping("/search")
   public ResponseEntity<LetterSearchResponse> searchLetter(
       @RequestParam(defaultValue = "") String keyword,
-      @RequestParam(defaultValue = "createdAt") String sortBy,
-      @RequestParam(defaultValue = "desc") String direction,
+      @RequestParam(defaultValue = "CREATED_AT") SortType sortBy,
+      @RequestParam(defaultValue = "DESC") SearchDirectionType direction,
       @RequestParam(defaultValue = "TITLE") SearchType searchType,
       @RequestParam(defaultValue = "0") int page)  {
-    Sort sort = direction.equalsIgnoreCase(Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
+    Sort sort = direction.getSearchType().equalsIgnoreCase(Direction.ASC.name())
+        ? Sort.by(sortBy.getDbOption()).ascending()
+        : Sort.by(sortBy.getDbOption()).descending();
+
     Pageable pageable = PageRequest.of(page, 10, sort);
 
     Page<LetterInfoResponse> letterInfoResponsePage = letterService.searchLetters(searchType, keyword, pageable).map(LetterInfoResponse::from);

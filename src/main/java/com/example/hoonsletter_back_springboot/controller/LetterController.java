@@ -7,7 +7,10 @@ import com.example.hoonsletter_back_springboot.dto.request.LetterUpdateRequest;
 import com.example.hoonsletter_back_springboot.dto.request.LetterSaveRequest;
 import com.example.hoonsletter_back_springboot.dto.response.GetLetterResponse;
 import com.example.hoonsletter_back_springboot.dto.response.LetterInfoResponse;
+import com.example.hoonsletter_back_springboot.dto.response.LetterSearchResponse;
 import com.example.hoonsletter_back_springboot.service.LetterService;
+import com.example.hoonsletter_back_springboot.service.PaginationService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,11 +28,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/letter")
 public class LetterController {
+
   private final LetterService letterService;
+  private final PaginationService paginationService;
 
   @Autowired
-  public LetterController(LetterService letterService){
+  public LetterController(LetterService letterService,
+      PaginationService paginationService){
     this.letterService = letterService;
+    this.paginationService = paginationService;
   }
 
   @GetMapping("/get")
@@ -38,16 +45,20 @@ public class LetterController {
   }
 
   @GetMapping("/search")
-  public ResponseEntity<Page<LetterInfoResponse>> searchLetter(
+  public ResponseEntity<LetterSearchResponse> searchLetter(
       @RequestParam(defaultValue = "") String keyword,
-      @RequestParam(defaultValue = "username") String sortBy,
+      @RequestParam(defaultValue = "createdAt") String sortBy,
       @RequestParam(defaultValue = "desc") String direction,
-      @RequestParam(defaultValue = "") SearchType searchType,
+      @RequestParam(defaultValue = "TITLE") SearchType searchType,
       @RequestParam(defaultValue = "0") int page)  {
     Sort sort = direction.equalsIgnoreCase(Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
     Pageable pageable = PageRequest.of(page, 10, sort);
 
-    return ResponseEntity.ok(letterService.searchLetters(searchType, keyword, pageable).map(LetterInfoResponse::from));
+    Page<LetterInfoResponse> letterInfoResponsePage = letterService.searchLetters(searchType, keyword, pageable).map(LetterInfoResponse::from);
+    List<Integer> paginationBarNumberList = paginationService.getPaginationBarNumberList(pageable.getPageNumber(),
+        letterInfoResponsePage.getTotalPages());
+
+    return ResponseEntity.ok(LetterSearchResponse.of(letterInfoResponsePage, paginationBarNumberList));
   }
 
   @PostMapping("/delete")

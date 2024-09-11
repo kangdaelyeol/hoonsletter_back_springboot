@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -22,6 +23,7 @@ import com.example.hoonsletter_back_springboot.dto.UserAccountDto;
 import com.example.hoonsletter_back_springboot.repository.LetterRepository;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +53,8 @@ class LetterServiceTest {
   LetterRepository letterRepository;
   @Mock
   UserAccountRepository userAccountRepository;
+  @Mock
+  FileStorageService fileStorageService;
 
   @BeforeEach
   void setUp() {
@@ -63,17 +67,19 @@ class LetterServiceTest {
   @Test
   void givenLetterInfo_whenSavingLetter_thenSavesLetter(){
     // Given
-    String username = "testuser";
+    String username = "testUsername";
     LetterDto letterDto = createLetterDto(username);
+    Letter savedLetter = createLetter(username, 10L);
     UserAccount user = createUser(username);
 
     given(userAccountRepository.getReferenceById(letterDto.userAccountDto().username())).willReturn(user);
+    given(letterRepository.save(any(Letter.class))).willReturn(savedLetter);
 
     // When
     sut.saveLetter(letterDto);
 
     // Then
-    then(userAccountRepository).should().getReferenceById(letterDto.userAccountDto().username());
+    then(userAccountRepository).should().getReferenceById(username);
     then(letterRepository).should().save(any(Letter.class));
   }
 
@@ -129,7 +135,7 @@ class LetterServiceTest {
         .hasFieldOrPropertyWithValue("createdAt", letter.getCreatedAt())
         .hasFieldOrPropertyWithValue("updatable", letter.isUpdatable())
         .hasFieldOrPropertyWithValue("userAccountDto", UserAccountDto.from(letter.getUserAccount()))
-        .hasFieldOrPropertyWithValue("letterSceneDtos", letter.getLetterScenes().stream()
+        .hasFieldOrPropertyWithValue("letterSceneDtoList", letter.getLetterScenes().stream()
             .map(LetterSceneDto::from)
             .toList());
     then(letterRepository).should().findById(letterId);
@@ -156,24 +162,28 @@ class LetterServiceTest {
 
   @DisplayName("편지의 id를 입력하면 편지를 삭제한다.")
   @Test
-  void givenLetterIdAndUsername_whenDeleting_thenDeletesLetter(){
+  void givenLetterIdAndUsername_whenDeleting_thenDeletesLetter() throws IOException {
     // Given
     Long letterId = 1L;
     String username = "testUsername";
+    Letter letter = createLetter(username, letterId);
     willDoNothing().given(letterRepository).deleteByIdAndUserAccount_Username(letterId, username);
+    willDoNothing().given(fileStorageService).deleteFileByName(anyString());
+    given(letterRepository.findById(letterId)).willReturn(Optional.of(letter));
 
     // When
     sut.deleteLetter(letterId);
 
     // Then
     then(letterRepository).should().deleteByIdAndUserAccount_Username(letterId, username);
+    then(letterRepository).should().findById(letterId);
   }
 
   @DisplayName("편지의 수정 정보를 입력하면, 편지를 수정한다")
   @Test
   void givenLetterIdAndModifiedInfo_whenUpdatingLetter_thenUpdatesLetter() {
     // Given
-    String username = "test";
+    String username = "testUsername";
     Long letterId = 10L;
     Letter letter = createLetter(username, letterId);
     LetterDto dto = createLetterDto(username, "newTitle", "newThumbnail", "newMessage");
@@ -233,21 +243,21 @@ class LetterServiceTest {
   @Test
   void givenLetterInfoAndDiffUserAccountInfo_whenUpdatingLetter_thenWillDoNothing() {
     // Given
-    String username = "testUser1";
+    String username = "testUsername";
     String diffUsername = "diffUser";
     Long letterId = 10L;
-    Letter letter = createLetter(username, letterId);
-    LetterDto dto = createLetterDto(diffUsername, "newTitle", "newThumb", "newMessage");
+    Letter letter = createLetter(diffUsername, letterId);
+    LetterDto letterDto = createLetterDto(username, "newTitle", "newThumb", "newMessage");
 
     given(letterRepository.getReferenceById(letterId)).willReturn(letter);
-    given(userAccountRepository.getReferenceById(dto.userAccountDto().username())).willReturn(createUser(diffUsername));
+    given(userAccountRepository.getReferenceById(username)).willReturn(createUser(username));
 
     // When
-    sut.updateLetter(letterId, dto);
+    sut.updateLetter(letterId, letterDto);
 
     // Then
     then(letterRepository).should().getReferenceById(letterId);
-    then(userAccountRepository).should().getReferenceById(dto.userAccountDto().username());
+    then(userAccountRepository).should().getReferenceById(username);
     then(letterRepository).shouldHaveNoMoreInteractions();
     assertThat(letter.getTitle()).isEqualTo("testTitle");
     assertThat(letter.getThumbnailUrl()).isEqualTo("testThumbnail");
@@ -380,7 +390,7 @@ class LetterServiceTest {
   }
 
   UserAccountDto createUserDto(String username) {
-    String title = "testTitlte";
+    String title = "testTilte";
     String thumbnail = "testThumbnail";
     return UserAccountDto.of(
         username,

@@ -14,7 +14,7 @@ public record LetterDto(
     LocalDateTime createdAt,
     boolean updatable,
     UserAccountDto userAccountDto,
-    List<LetterSceneDto> letterSceneDtos
+    List<LetterSceneDto> letterSceneDtoList
     ) {
   public static LetterDto of(
       Long id,
@@ -24,7 +24,7 @@ public record LetterDto(
       LocalDateTime createdAt,
       boolean updatable,
       UserAccountDto userAccountDto,
-      List<LetterSceneDto> letterSceneDtos
+      List<LetterSceneDto> letterSceneDtoList
   ){
     return new LetterDto(id,
         title,
@@ -33,7 +33,7 @@ public record LetterDto(
         createdAt,
         updatable,
         userAccountDto,
-        letterSceneDtos);
+        letterSceneDtoList);
   }
 
 

@@ -266,7 +266,7 @@ class UserAccountServiceTest {
         .hasFieldOrPropertyWithValue("username", userAccount.getUsername())
         .hasFieldOrPropertyWithValue("password", userAccount.getPassword())
         .hasFieldOrPropertyWithValue("profileUrl", userAccount.getProfileUrl())
-        .extracting("letterDtos", as(InstanceOfAssertFactories.COLLECTION))
+        .extracting("letterDtoList", as(InstanceOfAssertFactories.COLLECTION))
         .hasSize(0);
   }
 

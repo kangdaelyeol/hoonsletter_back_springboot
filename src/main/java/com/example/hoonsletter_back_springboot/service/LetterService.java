@@ -8,12 +8,13 @@ import com.example.hoonsletter_back_springboot.domain.UserAccount;
 import com.example.hoonsletter_back_springboot.domain.constant.SearchType;
 import com.example.hoonsletter_back_springboot.dto.LetterDto;
 import com.example.hoonsletter_back_springboot.dto.LetterSceneDto;
-import com.example.hoonsletter_back_springboot.dto.SceneMessageDto;
-import com.example.hoonsletter_back_springboot.dto.ScenePictureDto;
 import com.example.hoonsletter_back_springboot.repository.LetterRepository;
 import com.example.hoonsletter_back_springboot.repository.UserAccountRepository;
 import com.example.hoonsletter_back_springboot.util.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -33,19 +34,20 @@ public class LetterService {
 
   private final UserAccountRepository userAccountRepository;
 
+  private final FileStorageService fileStorageService;
+
   public LetterDto saveLetter(LetterDto dto){
     UserAccount userAccount = userAccountRepository.getReferenceById(SecurityUtil.getCurrentUsername());
 
     Letter letter = dto.toEntity(userAccount);
-    List<LetterSceneDto> letterSceneDtos = dto.letterSceneDtos();
+    List<LetterSceneDto> letterSceneDtoList = dto.letterSceneDtoList();
     List<LetterScene> letterScenes = new ArrayList<>();
 
-    for(LetterSceneDto sceneDto : letterSceneDtos){
-
+    letterSceneDtoList.forEach(sceneDto -> {
       LetterScene scene = createLetterScene(sceneDto, letter);
       letterScenes.add(scene);
+    });
 
-    }
     letter.setLetterScenes(letterScenes);
     Letter savedLetter = letterRepository.save(letter);
     return LetterDto.from(savedLetter);
@@ -60,6 +62,20 @@ public class LetterService {
 
   public void deleteLetter(Long letterId) {
     String username = SecurityUtil.getCurrentUsername();
+    Letter letter = letterRepository.findById(letterId).orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다!" + letterId));
+
+    if(!letter.getUserAccount().getUsername().equals(username)) return;
+
+    List<String> pictureList = getPictureList(letter);
+
+    pictureList.forEach(fileName -> {
+      try{
+        fileStorageService.deleteFileByName(fileName);
+      } catch (IOException e) {
+        log.warn("파일 삭제 실패 - fileName: " + fileName);
+      }
+    });
+
     letterRepository.deleteByIdAndUserAccount_Username(letterId, username);
   }
 
@@ -97,7 +113,7 @@ public class LetterService {
 
       letter.getLetterScenes().clear();
 
-      dto.letterSceneDtos().forEach(letterScene -> {
+      dto.letterSceneDtoList().forEach(letterScene -> {
         LetterScene scene = createLetterScene(letterScene, letter);
         letter.addLetterScene(scene);
       });
@@ -112,18 +128,41 @@ public class LetterService {
     List<ScenePicture> scenePictures = new ArrayList<>();
     LetterScene scene = sceneDto.toEntity(letter);
 
-    for(SceneMessageDto messageDto : sceneDto.messageDtos()){
-      SceneMessage message = messageDto.toEntity(scene);
-      sceneMessages.add(message);
-    }
+    sceneDto.messageDtoList()
+        .forEach(messageDto -> {
+          SceneMessage message = messageDto.toEntity(scene);
+          sceneMessages.add(message);
+        });
 
-    for(ScenePictureDto pictureDto : sceneDto.pictureDtos()){
-      ScenePicture picture = pictureDto.toEntity(scene);
-      scenePictures.add(picture);
-    }
+    sceneDto.pictureDtoList()
+        .forEach(pictureDto -> {
+          ScenePicture picture = pictureDto.toEntity(scene);
+          String originalFileName = getOriginalFileNameWithExtension(pictureDto.url());
+          picture.setUrl(originalFileName);
+          scenePictures.add(picture);
+        });
 
     scene.setSceneMessages(sceneMessages);
     scene.setScenePictures(scenePictures);
+
     return scene;
+  }
+
+  private static List<String> getPictureList(Letter letter) {
+    List<String> pictureList = new ArrayList<>(letter.getLetterScenes()
+        .stream()
+        .flatMap(scene -> scene.getScenePictures().stream())
+        .map(ScenePicture::getUrl)
+        .toList());
+
+
+    pictureList.add(letter.getThumbnailUrl());
+
+    return pictureList;
+  }
+
+  private static String getOriginalFileNameWithExtension(String filePath) {
+    Path path = Paths.get(filePath);
+    return path.getFileName().toString();
   }
 }

@@ -8,27 +8,27 @@ public record UserAccountWithLettersDto(
     String password,
     String nickname,
     String profileUrl,
-    List<LetterDto> letterDtos
+    List<LetterDto> letterDtoList
 ) {
   public static UserAccountWithLettersDto of(
       String username,
       String password,
       String nickname,
       String profileUrl,
-      List<LetterDto> letterDtos
+      List<LetterDto> letterDtoList
   ) {
     return new UserAccountWithLettersDto(
        username,
        password,
        nickname,
        profileUrl,
-       letterDtos
+       letterDtoList
     );
   }
 
   public static UserAccountWithLettersDto from(UserAccount entity){
-    List<LetterDto> letterDtos = entity.getLetters() != null
-        ? entity.getLetters().stream().map(LetterDto::from).toList()
+    List<LetterDto> letterDtoList = entity.getLetterList() != null
+        ? entity.getLetterList().stream().map(LetterDto::from).toList()
         : List.of();
 
     return new UserAccountWithLettersDto(
@@ -36,7 +36,7 @@ public record UserAccountWithLettersDto(
         entity.getPassword(),
         entity.getNickname(),
         entity.getProfileUrl(),
-        letterDtos
+        letterDtoList
     );
   }
 }

@@ -22,7 +22,7 @@ public record GetUserResponse(
         letters);
   }
   public static GetUserResponse from (UserAccountWithLettersDto dto){
-    List<LetterInfo> letters = dto.letterDtos().stream().map(LetterInfo::from).collect(Collectors.toList());
+    List<LetterInfo> letters = dto.letterDtoList().stream().map(LetterInfo::from).collect(Collectors.toList());
     return GetUserResponse.of(dto.username(),
         dto.nickname(),
         dto.profileUrl(),

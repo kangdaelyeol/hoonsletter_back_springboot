@@ -48,7 +48,7 @@ class PaginationServiceTest {
     // Given
 
     // When
-    List<Integer> actual = sut.getPaginationBarNumbers(currentPageNumber, totalPages);
+    List<Integer> actual = sut.getPaginationBarNumberList(currentPageNumber, totalPages);
 
     // Then
     assertThat(actual).isEqualTo(expected);
